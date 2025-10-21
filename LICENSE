@@ -1,0 +1,66 @@
+GNU GENERAL PUBLIC LICENSE
+Version 3, 29 June 2007
+
+Copyright (C) 2025 FronNian (2081610040@qq.com)
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+================================================================================
+
+ADDITIONAL TERMS (under GPL-3.0 Section 7):
+
+1. 修改通知义务 (Modification Notification):
+   任何修改或衍生此软件的个人或组织应当：
+   - 在修改版本的显著位置注明原作者信息
+   - 建议通过以下方式通知原作者：
+     * GitHub: 提交 Pull Request 或 Issue
+     * GreasyFork: 在评论区说明
+     * 邮件: 发送修改说明
+
+   Anyone who modifies or derives from this software should:
+   - Credit the original author in a prominent location
+   - Recommend notifying the original author via:
+     * GitHub: Submit Pull Request or Issue
+     * GreasyFork: Comment section
+     * Email: Send modification description
+
+2. 禁止闭源 (No Closed Source):
+   严禁将本软件或其衍生作品闭源或私有化。任何基于本软件的修改版本
+   必须同样以 GPL-3.0 或更高版本的 GPL 许可证发布。
+
+   It is strictly prohibited to close-source or privatize this software
+   or its derivatives. Any modified version must be released under
+   GPL-3.0 or a later version of the GPL license.
+
+3. 商业使用限制 (Commercial Use Restriction):
+   允许商业使用，但任何商业衍生作品也必须遵守 GPL-3.0 许可证，
+   并保持开源。
+
+   Commercial use is permitted, but any commercial derivative must
+   comply with GPL-3.0 and remain open source.
+
+================================================================================
+
+完整的 GPL-3.0 许可证文本请访问：
+Full GPL-3.0 license text: https://www.gnu.org/licenses/gpl-3.0.txt
+
+================================================================================
+
+联系方式 (Contact):
+- Author: FronNian
+- Email: 2081610040@qq.com
+- Project: Universal Currency Converter (全能货币转换器)
+- GreasyFork: https://greasyfork.org/scripts/currency-converter
+- Issues: https://greasyfork.org/scripts/currency-converter/feedback
+
