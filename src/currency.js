@@ -2,7 +2,7 @@
 // @name         ✨✨✨全能货币转换器 - Universal Currency Converter✨✨✨
 // @name:en      Universal Currency Converter
 // @namespace    https://greasyfork.org/users/currency-converter
-// @version      1.2.0
+// @version      1.3.0
 // @description  ✨✨✨智能识别网页价格，鼠标悬停即可查看实时汇率转换。支持15+主流货币，使用免费API，数据缓存，性能优化。
 // @description:en  Intelligently detect prices on web pages and view real-time currency conversions on hover. Supports 15+ major currencies with free APIs, data caching, and performance optimization.
 // @author       FronNian
@@ -1424,11 +1424,12 @@
         /* 工具提示基础样式 */
         .cc-tooltip {
           position: absolute;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
+          background: white;
+          color: #1f2937;
           padding: 12px 16px;
           border-radius: 8px;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+          border: 1px solid #e5e7eb;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1);
           z-index: 999999;
           min-width: 220px;
           max-width: 320px;
@@ -1447,10 +1448,10 @@
           right: 8px;
           width: 24px;
           height: 24px;
-          background: rgba(255, 255, 255, 0.2);
+          background: #f3f4f6;
           border: none;
           border-radius: 50%;
-          color: white;
+          color: #6b7280;
           font-size: 20px;
           line-height: 1;
           cursor: pointer;
@@ -1463,12 +1464,14 @@
         }
 
         .cc-tooltip-close:hover {
-          background: rgba(255, 255, 255, 0.3);
+          background: #e5e7eb;
+          color: #1f2937;
           transform: scale(1.1);
         }
 
         .cc-tooltip-close:active {
           transform: scale(0.95);
+          background: #d1d5db;
         }
 
         .cc-tooltip-visible {
@@ -1478,7 +1481,28 @@
 
         /* 错误提示样式 */
         .cc-tooltip-error {
-          background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+          background: #fef2f2;
+          border-color: #fecaca;
+          color: #991b1b;
+        }
+
+        .cc-tooltip-error .cc-tooltip-header,
+        .cc-tooltip-error .cc-converted-amount {
+          color: #991b1b;
+        }
+
+        .cc-tooltip-error .cc-tooltip-header {
+          border-bottom-color: #fecaca;
+        }
+
+        .cc-tooltip-error .cc-tooltip-close {
+          background: rgba(239, 68, 68, 0.1);
+          color: #dc2626;
+        }
+
+        .cc-tooltip-error .cc-tooltip-close:hover {
+          background: rgba(239, 68, 68, 0.2);
+          color: #991b1b;
         }
 
         /* 头部样式 */
@@ -1488,7 +1512,8 @@
           margin-bottom: 10px;
           padding-bottom: 8px;
           padding-right: 20px;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+          border-bottom: 1px solid #e5e7eb;
+          color: #1f2937;
         }
 
         .cc-original {
@@ -1511,22 +1536,23 @@
 
         .cc-currency-code {
           font-weight: 600;
-          opacity: 0.9;
+          color: #6b7280;
           font-size: 13px;
         }
 
         .cc-converted-amount {
           font-weight: bold;
           font-size: 15px;
+          color: #1f2937;
         }
 
         /* 底部样式 */
         .cc-tooltip-footer {
           margin-top: 10px;
           padding-top: 8px;
-          border-top: 1px solid rgba(255, 255, 255, 0.3);
+          border-top: 1px solid #e5e7eb;
           font-size: 11px;
-          opacity: 0.8;
+          color: #9ca3af;
           display: flex;
           justify-content: space-between;
           align-items: center;
@@ -1551,7 +1577,7 @@
         .cc-error-hint {
           margin-top: 8px;
           padding-top: 8px;
-          border-top: 1px solid rgba(255, 255, 255, 0.3);
+          border-top: 1px solid #fecaca;
           font-size: 12px;
           text-align: center;
           line-height: 1.5;
@@ -1560,6 +1586,78 @@
         .cc-error-hint small {
           font-size: 11px;
           opacity: 0.9;
+        }
+
+        /* 暗色模式支持 - Tooltip */
+        @media (prefers-color-scheme: dark) {
+          .cc-tooltip {
+            background: #1f2937;
+            border-color: #374151;
+            color: #f3f4f6;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3);
+          }
+
+          .cc-tooltip-close {
+            background: #374151;
+            color: #9ca3af;
+          }
+
+          .cc-tooltip-close:hover {
+            background: #4b5563;
+            color: #f3f4f6;
+          }
+
+          .cc-tooltip-close:active {
+            background: #374151;
+          }
+
+          .cc-tooltip-header {
+            border-bottom-color: #374151;
+            color: #f3f4f6;
+          }
+
+          .cc-currency-code {
+            color: #9ca3af;
+          }
+
+          .cc-converted-amount {
+            color: #f3f4f6;
+          }
+
+          .cc-tooltip-footer {
+            border-top-color: #374151;
+            color: #6b7280;
+          }
+
+          .cc-error-hint {
+            border-top-color: #374151;
+          }
+
+          /* 暗色模式下的错误提示 */
+          .cc-tooltip-error {
+            background: #7f1d1d;
+            border-color: #991b1b;
+            color: #fecaca;
+          }
+
+          .cc-tooltip-error .cc-tooltip-header,
+          .cc-tooltip-error .cc-converted-amount {
+            color: #fecaca;
+          }
+
+          .cc-tooltip-error .cc-tooltip-header {
+            border-bottom-color: #991b1b;
+          }
+
+          .cc-tooltip-error .cc-tooltip-close {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+          }
+
+          .cc-tooltip-error .cc-tooltip-close:hover {
+            background: rgba(239, 68, 68, 0.3);
+            color: #fecaca;
+          }
         }
 
         /* 响应式 */
@@ -1753,6 +1851,19 @@ IP自动检测: ${this.config.get('autoDetectLocation') ? '✅ 启用' : '❌ �
                 </label>
                 <small>免费额度：300请求/月</small>
                 <input type="text" id="cc-key-currencyapi" placeholder="留空使用默认密钥" />
+              </div>
+            </div>
+
+            <!-- 快捷键说明 -->
+            <div class="cc-section">
+              <h3>⌨️ 快捷键</h3>
+              <div class="cc-info-box" style="background: #f0fdf4; border-left-color: #10b981;">
+                <p style="color: #065f46; margin-bottom: 12px;"><strong>可用的快捷键：</strong></p>
+                <div style="color: #065f46; font-size: 13px; line-height: 1.8;">
+                  <div><kbd style="background: #d1fae5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">Alt + C</kbd> - 打开/关闭货币计算器</div>
+                  <div><kbd style="background: #d1fae5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">Alt + H</kbd> - 隐藏/显示价格标记</div>
+                  <div><kbd style="background: #d1fae5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">Esc</kbd> - 关闭所有浮动窗口</div>
+                </div>
               </div>
             </div>
           </div>
@@ -2338,6 +2449,556 @@ IP自动检测: ${this.config.get('autoDetectLocation') ? '✅ 启用' : '❌ �
     }
   }
 
+  /* ==================== 货币计算器 ==================== */
+  
+  /**
+   * 货币计算器类
+   * 提供独立的浮动计算器窗口
+   */
+  class CalculatorPanel {
+    constructor(rateManager, configManager) {
+      this.rateManager = rateManager;
+      this.config = configManager;
+      this.panel = null;
+      this.isDragging = false;
+      this.dragOffset = { x: 0, y: 0 };
+      
+      // 加载保存的配置
+      this.position = this.loadPosition();
+      this.fromCurrency = this.loadSavedCurrency('calcFromCurrency') || 'USD';
+      this.toCurrency = this.loadSavedCurrency('calcToCurrency') || 'CNY';
+      this.fromAmount = 100;
+      
+      this.create();
+    }
+
+    /**
+     * 加载保存的位置
+     */
+    loadPosition() {
+      try {
+        const saved = GM_getValue('cc_calc_position');
+        return saved ? JSON.parse(saved) : { x: window.innerWidth - 350, y: 100 };
+      } catch (error) {
+        return { x: window.innerWidth - 350, y: 100 };
+      }
+    }
+
+    /**
+     * 保存位置
+     */
+    savePosition() {
+      try {
+        GM_setValue('cc_calc_position', JSON.stringify(this.position));
+      } catch (error) {
+        console.error('[CC] Failed to save calculator position:', error);
+      }
+    }
+
+    /**
+     * 加载保存的货币
+     */
+    loadSavedCurrency(key) {
+      try {
+        return GM_getValue(key);
+      } catch (error) {
+        return null;
+      }
+    }
+
+    /**
+     * 保存货币选择
+     */
+    saveCurrency(key, currency) {
+      try {
+        GM_setValue(key, currency);
+      } catch (error) {
+        console.error('[CC] Failed to save currency:', error);
+      }
+    }
+
+    /**
+     * 创建计算器面板
+     */
+    create() {
+      const supportedCurrencies = ['USD', 'CNY', 'EUR', 'GBP', 'JPY', 'HKD', 'TWD', 'KRW', 'AUD', 'CAD', 'SGD', 'CHF', 'RUB', 'INR', 'BRL'];
+      
+      this.panel = document.createElement('div');
+      this.panel.className = 'cc-calculator-panel';
+      this.panel.style.left = `${this.position.x}px`;
+      this.panel.style.top = `${this.position.y}px`;
+      this.panel.style.display = 'none';
+      
+      this.panel.innerHTML = `
+        <div class="cc-calc-header" id="cc-calc-header">
+          <span>💱 货币计算器</span>
+          <button class="cc-calc-close" id="cc-calc-close">&times;</button>
+        </div>
+        <div class="cc-calc-body">
+          <div class="cc-calc-input-group">
+            <input type="number" id="cc-calc-from-amount" value="${this.fromAmount}" step="0.01" min="0" />
+            <select id="cc-calc-from-currency">
+              ${supportedCurrencies.map(c => `<option value="${c}" ${c === this.fromCurrency ? 'selected' : ''}>${c}</option>`).join('')}
+            </select>
+          </div>
+          <div class="cc-calc-swap">
+            <button id="cc-calc-swap" title="交换货币">⇅</button>
+          </div>
+          <div class="cc-calc-input-group">
+            <input type="number" id="cc-calc-to-amount" value="0" readonly />
+            <select id="cc-calc-to-currency">
+              ${supportedCurrencies.map(c => `<option value="${c}" ${c === this.toCurrency ? 'selected' : ''}>${c}</option>`).join('')}
+            </select>
+          </div>
+          <div class="cc-calc-rate" id="cc-calc-rate">
+            1 ${this.fromCurrency} = 0 ${this.toCurrency}
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(this.panel);
+      this.attachEvents();
+      this.injectStyles();
+      this.calculate(); // 初始计算
+    }
+
+    /**
+     * 绑定事件
+     */
+    attachEvents() {
+      // 关闭按钮
+      this.panel.querySelector('#cc-calc-close').addEventListener('click', () => {
+        this.hide();
+      });
+
+      // 拖拽
+      const header = this.panel.querySelector('#cc-calc-header');
+      header.addEventListener('mousedown', (e) => {
+        if (e.target.id === 'cc-calc-close') return;
+        this.isDragging = true;
+        this.dragOffset.x = e.clientX - this.position.x;
+        this.dragOffset.y = e.clientY - this.position.y;
+        this.panel.style.cursor = 'grabbing';
+        header.style.cursor = 'grabbing';
+      });
+
+      document.addEventListener('mousemove', (e) => {
+        if (!this.isDragging) return;
+        e.preventDefault();
+        this.position.x = e.clientX - this.dragOffset.x;
+        this.position.y = e.clientY - this.dragOffset.y;
+        
+        // 边界限制
+        this.position.x = Math.max(0, Math.min(this.position.x, window.innerWidth - this.panel.offsetWidth));
+        this.position.y = Math.max(0, Math.min(this.position.y, window.innerHeight - this.panel.offsetHeight));
+        
+        this.panel.style.left = `${this.position.x}px`;
+        this.panel.style.top = `${this.position.y}px`;
+      });
+
+      document.addEventListener('mouseup', () => {
+        if (this.isDragging) {
+          this.isDragging = false;
+          this.panel.style.cursor = '';
+          header.style.cursor = '';
+          this.savePosition();
+        }
+      });
+
+      // 输入变化
+      const fromAmountInput = this.panel.querySelector('#cc-calc-from-amount');
+      const fromCurrencySelect = this.panel.querySelector('#cc-calc-from-currency');
+      const toCurrencySelect = this.panel.querySelector('#cc-calc-to-currency');
+
+      fromAmountInput.addEventListener('input', () => {
+        let value = parseFloat(fromAmountInput.value);
+        
+        // 验证输入
+        if (isNaN(value) || value < 0) {
+          value = 0;
+        }
+        if (value > 999999999) {
+          value = 999999999;
+          fromAmountInput.value = value;
+        }
+        
+        this.fromAmount = value;
+        this.calculate();
+      });
+
+      // 失去焦点时格式化显示
+      fromAmountInput.addEventListener('blur', () => {
+        if (this.fromAmount > 0) {
+          fromAmountInput.value = this.fromAmount.toFixed(2);
+        }
+      });
+
+      // Enter键快速计算
+      fromAmountInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          fromAmountInput.blur();
+          this.calculate();
+        }
+      });
+
+      fromCurrencySelect.addEventListener('change', () => {
+        this.fromCurrency = fromCurrencySelect.value;
+        this.saveCurrency('calcFromCurrency', this.fromCurrency);
+        this.calculate();
+      });
+
+      toCurrencySelect.addEventListener('change', () => {
+        this.toCurrency = toCurrencySelect.value;
+        this.saveCurrency('calcToCurrency', this.toCurrency);
+        this.calculate();
+      });
+
+      // 交换按钮
+      this.panel.querySelector('#cc-calc-swap').addEventListener('click', () => {
+        // 交换货币
+        const tempCurrency = this.fromCurrency;
+        this.fromCurrency = this.toCurrency;
+        this.toCurrency = tempCurrency;
+        
+        // 交换金额（使用当前转换后的金额）
+        const toAmountInput = this.panel.querySelector('#cc-calc-to-amount');
+        const currentToAmount = parseFloat(toAmountInput.value) || 0;
+        this.fromAmount = currentToAmount;
+        fromAmountInput.value = this.fromAmount.toFixed(2);
+        
+        // 更新下拉框
+        fromCurrencySelect.value = this.fromCurrency;
+        toCurrencySelect.value = this.toCurrency;
+        
+        // 保存货币选择
+        this.saveCurrency('calcFromCurrency', this.fromCurrency);
+        this.saveCurrency('calcToCurrency', this.toCurrency);
+        
+        // 重新计算
+        this.calculate();
+      });
+    }
+
+    /**
+     * 计算转换
+     */
+    async calculate() {
+      try {
+        // 获取汇率
+        await this.rateManager.getRates('USD');
+        
+        const converted = this.rateManager.convert(this.fromAmount, this.fromCurrency, this.toCurrency);
+        const rate = this.rateManager.convert(1, this.fromCurrency, this.toCurrency);
+        
+        // 更新显示
+        const toAmountInput = this.panel.querySelector('#cc-calc-to-amount');
+        const rateDisplay = this.panel.querySelector('#cc-calc-rate');
+        
+        toAmountInput.value = converted.toFixed(2);
+        rateDisplay.textContent = `1 ${this.fromCurrency} = ${rate.toFixed(4)} ${this.toCurrency}`;
+        rateDisplay.style.color = '#6b7280';
+      } catch (error) {
+        const toAmountInput = this.panel.querySelector('#cc-calc-to-amount');
+        const rateDisplay = this.panel.querySelector('#cc-calc-rate');
+        
+        toAmountInput.value = '0.00';
+        rateDisplay.textContent = '⚠️ 汇率数据不可用，请检查网络';
+        rateDisplay.style.color = '#ef4444';
+        
+        console.warn('[CC] Calculator conversion failed:', error);
+      }
+    }
+
+    /**
+     * 显示计算器
+     */
+    show() {
+      this.panel.style.display = 'block';
+      this.calculate(); // 刷新汇率
+      this.panel.querySelector('#cc-calc-from-amount').focus();
+    }
+
+    /**
+     * 隐藏计算器
+     */
+    hide() {
+      this.panel.style.display = 'none';
+    }
+
+    /**
+     * 切换显示/隐藏
+     */
+    toggle() {
+      if (this.panel.style.display === 'none') {
+        this.show();
+      } else {
+        this.hide();
+      }
+    }
+
+    /**
+     * 注入样式
+     */
+    injectStyles() {
+      GM_addStyle(`
+        .cc-calculator-panel {
+          position: fixed;
+          width: 300px;
+          background: white;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1);
+          z-index: 9999998;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .cc-calc-header {
+          padding: 12px 16px;
+          background: white;
+          border-bottom: 1px solid #e5e7eb;
+          border-radius: 8px 8px 0 0;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          cursor: grab;
+          user-select: none;
+        }
+
+        .cc-calc-header span {
+          font-weight: 600;
+          font-size: 14px;
+          color: #1f2937;
+        }
+
+        .cc-calc-close {
+          background: none;
+          border: none;
+          color: #6b7280;
+          font-size: 24px;
+          cursor: pointer;
+          padding: 0;
+          width: 24px;
+          height: 24px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 4px;
+          transition: all 0.2s;
+        }
+
+        .cc-calc-close:hover {
+          background: #f3f4f6;
+          color: #1f2937;
+        }
+
+        .cc-calc-body {
+          padding: 16px;
+        }
+
+        .cc-calc-input-group {
+          display: flex;
+          gap: 8px;
+          margin-bottom: 12px;
+        }
+
+        .cc-calc-input-group input {
+          flex: 1;
+          padding: 10px 12px;
+          border: 1px solid #d1d5db;
+          border-radius: 6px;
+          font-size: 16px;
+          font-weight: 600;
+          color: #1f2937;
+        }
+
+        .cc-calc-input-group input:read-only {
+          background: #f9fafb;
+          color: #6b7280;
+        }
+
+        .cc-calc-input-group input:focus {
+          outline: none;
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .cc-calc-input-group select {
+          padding: 10px 8px;
+          border: 1px solid #d1d5db;
+          border-radius: 6px;
+          font-size: 14px;
+          font-weight: 600;
+          color: #1f2937;
+          background: white;
+          cursor: pointer;
+        }
+
+        .cc-calc-input-group select:focus {
+          outline: none;
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .cc-calc-swap {
+          display: flex;
+          justify-content: center;
+          margin: -6px 0;
+        }
+
+        .cc-calc-swap button {
+          background: #f3f4f6;
+          border: none;
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          font-size: 18px;
+          color: #6b7280;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .cc-calc-swap button:hover {
+          background: #e5e7eb;
+          color: #1f2937;
+          transform: rotate(180deg);
+        }
+
+        .cc-calc-swap button:active {
+          background: #d1d5db;
+        }
+
+        .cc-calc-rate {
+          text-align: center;
+          font-size: 12px;
+          color: #6b7280;
+          margin-top: 12px;
+          padding-top: 12px;
+          border-top: 1px solid #e5e7eb;
+        }
+
+        /* 暗色模式 */
+        @media (prefers-color-scheme: dark) {
+          .cc-calculator-panel {
+            background: #1f2937;
+            border-color: #374151;
+          }
+
+          .cc-calc-header {
+            background: #1f2937;
+            border-bottom-color: #374151;
+          }
+
+          .cc-calc-header span {
+            color: #f3f4f6;
+          }
+
+          .cc-calc-close {
+            color: #9ca3af;
+          }
+
+          .cc-calc-close:hover {
+            background: #374151;
+            color: #f3f4f6;
+          }
+
+          .cc-calc-input-group input,
+          .cc-calc-input-group select {
+            background: #374151;
+            border-color: #4b5563;
+            color: #f3f4f6;
+          }
+
+          .cc-calc-input-group input:read-only {
+            background: #2d3748;
+            color: #9ca3af;
+          }
+
+          .cc-calc-swap button {
+            background: #374151;
+            color: #9ca3af;
+          }
+
+          .cc-calc-swap button:hover {
+            background: #4b5563;
+            color: #f3f4f6;
+          }
+
+          .cc-calc-rate {
+            border-top-color: #374151;
+            color: #6b7280;
+          }
+        }
+      `);
+    }
+  }
+
+  /* ==================== 快捷键管理器 ==================== */
+  
+  /**
+   * 快捷键管理器类
+   * 处理全局快捷键
+   */
+  class KeyboardManager {
+    constructor(calculatorPanel, tooltipManager) {
+      this.calculator = calculatorPanel;
+      this.tooltipManager = tooltipManager;
+      this.init();
+    }
+
+    /**
+     * 初始化快捷键监听
+     */
+    init() {
+      document.addEventListener('keydown', (e) => {
+        // Alt + C: 打开/关闭计算器
+        if (e.altKey && e.key.toLowerCase() === 'c') {
+          e.preventDefault();
+          this.calculator.toggle();
+          console.log('[CC] 快捷键: Alt+C - 切换计算器');
+        }
+
+        // Escape: 关闭计算器和所有tooltip
+        if (e.key === 'Escape') {
+          this.calculator.hide();
+          if (this.tooltipManager.currentTooltip) {
+            this.tooltipManager.hideTooltip();
+          }
+        }
+
+        // Alt + H: 隐藏/显示所有价格标记
+        if (e.altKey && e.key.toLowerCase() === 'h') {
+          e.preventDefault();
+          this.togglePriceHighlights();
+          console.log('[CC] 快捷键: Alt+H - 切换价格标记');
+        }
+      });
+
+      console.log('[CC] 快捷键已启用: Alt+C (计算器), Alt+H (切换标记), Esc (关闭)');
+    }
+
+    /**
+     * 切换价格高亮显示
+     */
+    togglePriceHighlights() {
+      const priceElements = document.querySelectorAll('.cc-price-detected');
+      if (priceElements.length === 0) return;
+
+      const firstElement = priceElements[0];
+      const isHidden = firstElement.style.textDecoration === 'none';
+
+      priceElements.forEach(el => {
+        if (isHidden) {
+          el.style.textDecoration = ''; // 恢复下划线
+          el.style.textDecorationStyle = '';
+          el.style.textDecorationColor = '';
+        } else {
+          el.style.textDecoration = 'none'; // 隐藏下划线
+        }
+      });
+    }
+  }
+
   /* ==================== 动态内容监听 ==================== */
   
   /**
@@ -2375,7 +3036,7 @@ IP自动检测: ${this.config.get('autoDetectLocation') ? '✅ 启用' : '❌ �
    * 主初始化函数
    */
   function init() {
-    console.log('%c💱 Currency Converter v1.2.0 Loaded', 
+    console.log('%c💱 Currency Converter v1.3.0 Loaded', 
       'color: #667eea; font-size: 14px; font-weight: bold;');
 
     try {
@@ -2407,6 +3068,19 @@ IP自动检测: ${this.config.get('autoDetectLocation') ? '✅ 启用' : '❌ �
       // 5.5. 实例化设置面板
       const settingsPanel = new SettingsPanel(configManager);
       console.log('[CC] SettingsPanel initialized');
+
+      // 5.6. 实例化货币计算器
+      const calculator = new CalculatorPanel(rateManager, configManager);
+      console.log('[CC] CalculatorPanel initialized');
+
+      // 5.7. 实例化快捷键管理器
+      const keyboardManager = new KeyboardManager(calculator, tooltipManager);
+      console.log('[CC] KeyboardManager initialized');
+
+      // 5.8. 添加计算器菜单命令
+      GM_registerMenuCommand('💱 货币计算器 (Alt+C)', () => {
+        calculator.toggle();
+      });
 
       // 6. 延迟扫描页面（性能优化）
       if ('requestIdleCallback' in window) {
