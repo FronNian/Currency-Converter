@@ -2,9 +2,9 @@
 // @name         ✨✨✨全能货币转换器 - Universal Currency Converter✨✨✨
 // @name:en      Universal Currency Converter
 // @namespace    https://greasyfork.org/users/currency-converter
-// @version      1.4.2
-// @description  ✨✨✨智能识别网页价格，鼠标悬停即可查看实时汇率转换。支持15+主流货币，使用免费API，数据缓存，性能优化。
-// @description:en  Intelligently detect prices on web pages and view real-time currency conversions on hover. Supports 15+ major currencies with free APIs, data caching, and performance optimization.
+// @version      1.5.0
+// @description  ✨✨✨智能识别网页价格，鼠标悬停即可查看实时汇率转换。支持57种主流货币，API密钥池轮换，智能多语言界面。
+// @description:en  Intelligently detect prices on web pages and view real-time currency conversions on hover. Supports 57 major currencies, API key rotation, smart multilingual interface.
 // @author       FronNian
 // @copyright    2025, FronNian (huayuan4564@gmail.com)
 // @match        *://*/*
@@ -55,6 +55,36 @@
   // Fixer.io: 147078d87fed12fc4266aa216b3c98c9
   // CurrencyAPI: cur_live_cqiOETlTuk2UvLSDONtdIxhTZIlq6PPElZ9wtxlv
 
+  /* ==================== 货币名称映射 ==================== */
+
+  /**
+   * 货币中文名称映射（57种主流货币）
+   */
+  const CURRENCY_NAMES_ZH = {
+    // 主要货币
+    'USD': '美元', 'EUR': '欧元', 'GBP': '英镑', 'JPY': '日元', 'CHF': '瑞士法郎',
+    // 亚洲
+    'CNY': '人民币', 'HKD': '港币', 'TWD': '新台币', 'KRW': '韩元', 'SGD': '新加坡元', 
+    'THB': '泰铢', 'MYR': '马来西亚林吉特', 'IDR': '印尼盾', 'PHP': '菲律宾比索', 'VND': '越南盾', 
+    'INR': '印度卢比', 'PKR': '巴基斯坦卢比', 'BDT': '孟加拉塔卡', 'LKR': '斯里兰卡卢比', 'NPR': '尼泊尔卢比',
+    // 大洋洲
+    'AUD': '澳元', 'NZD': '新西兰元',
+    // 北美
+    'CAD': '加元', 'MXN': '墨西哥比索',
+    // 南美
+    'BRL': '巴西雷亚尔', 'ARS': '阿根廷比索', 'CLP': '智利比索', 'COP': '哥伦比亚比索', 'PEN': '秘鲁索尔',
+    // 欧洲
+    'RUB': '卢布', 'PLN': '波兰兹罗提', 'CZK': '捷克克朗', 'HUF': '匈牙利福林', 'RON': '罗马尼亚列伊', 
+    'BGN': '保加利亚列弗', 'HRK': '克罗地亚库纳', 'SEK': '瑞典克朗', 'NOK': '挪威克朗', 'DKK': '丹麦克朗', 
+    'ISK': '冰岛克朗', 'TRY': '土耳其里拉', 'UAH': '乌克兰格里夫纳',
+    // 中东
+    'AED': '阿联酋迪拉姆', 'SAR': '沙特里亚尔', 'QAR': '卡塔尔里亚尔', 'KWD': '科威特第纳尔', 
+    'BHD': '巴林第纳尔', 'OMR': '阿曼里亚尔', 'JOD': '约旦第纳尔', 'ILS': '以色列新谢克尔', 'EGP': '埃及镑',
+    // 非洲
+    'ZAR': '南非兰特', 'NGN': '尼日利亚奈拉', 'KES': '肯尼亚先令', 'GHS': '加纳塞地', 
+    'MAD': '摩洛哥迪拉姆', 'TND': '突尼斯第纳尔', 'DZD': '阿尔及利亚第纳尔'
+  };
+
   /* ==================== 默认配置 ==================== */
   
   /**
@@ -87,11 +117,25 @@
       // 示例：'CNY': 7.25 表示 1 USD = 7.25 CNY
     },
     
-    // API密钥配置
+    // API密钥配置（主密钥）
     apiKeys: {
       exchangeRateApi: '04529d4768099d362afffc31',
       fixer: '147078d87fed12fc4266aa216b3c98c9',
       currencyapi: 'cur_live_cqiOETlTuk2UvLSDONtdIxhTZIlq6PPElZ9wtxlv'
+    },
+    
+    // API密钥池（备用密钥，用于轮换）
+    apiKeyPools: {
+      exchangeRateApi: [],  // 用户可添加多个备用密钥
+      fixer: [],
+      currencyapi: []
+    },
+    
+    // 当前使用的密钥索引（用于轮换）
+    currentKeyIndex: {
+      exchangeRateApi: 0,
+      fixer: 0,
+      currencyapi: 0
     },
     
     // 缓存配置
@@ -668,24 +712,89 @@
           }
         }
 
-        try {
-          console.log(`[CC] Trying API: ${api.name}`);
-          const data = await this.callAPI(api, baseCurrency);
-          if (data && data.rates) {
-            console.log(`[CC] Successfully got rates from ${api.name}`);
-            return data;
+        const keyName = api.name === 'exchangerate-api' ? 'exchangeRateApi' : api.name;
+        const allKeys = this.getAllKeys(keyName);
+        
+        // 尝试该API的所有可用密钥
+        for (let keyAttempt = 0; keyAttempt < allKeys.length; keyAttempt++) {
+          try {
+            console.log(`[CC] Trying API: ${api.name} (key ${keyAttempt + 1}/${allKeys.length})`);
+            const data = await this.callAPI(api, baseCurrency);
+            if (data && data.rates) {
+              console.log(`[CC] ✅ Successfully got rates from ${api.name}`);
+              return data;
+            }
+          } catch (error) {
+            console.warn(`[CC] ❌ API ${api.name} failed (key ${keyAttempt + 1}/${allKeys.length}):`, error.message);
+            
+            // 如果还有其他密钥，切换并重试
+            if (keyAttempt < allKeys.length - 1) {
+              this.switchToNextKey(keyName);
+              console.log(`[CC] 🔄 Retrying ${api.name} with next key...`);
+            }
           }
-        } catch (error) {
-          console.warn(`[CC] API ${api.name} failed:`, error.message);
-          continue;
         }
+        
+        console.warn(`[CC] All keys exhausted for ${api.name}, trying next API...`);
       }
 
-      throw new Error('All APIs failed');
+      throw new Error('All APIs and keys exhausted');
     }
 
     /**
-     * 调用单个API（带重试机制）
+     * 获取API的所有可用密钥（主密钥 + 备用密钥池）
+     * @param {string} keyName - 密钥名称
+     * @returns {Array<string>} 密钥数组
+     */
+    getAllKeys(keyName) {
+      const mainKey = this.config.get('apiKeys')[keyName] || '';
+      const keyPool = this.config.get('apiKeyPools')[keyName] || [];
+      
+      // 合并主密钥和备用密钥池（去重）
+      const allKeys = [mainKey, ...keyPool].filter(key => key && key.trim());
+      return [...new Set(allKeys)]; // 去重
+    }
+    
+    /**
+     * 获取当前应使用的密钥
+     * @param {string} keyName - 密钥名称
+     * @returns {string} 当前密钥
+     */
+    getCurrentKey(keyName) {
+      const allKeys = this.getAllKeys(keyName);
+      if (allKeys.length === 0) return '';
+      
+      const currentIndex = this.config.get('currentKeyIndex')[keyName] || 0;
+      return allKeys[currentIndex % allKeys.length];
+    }
+    
+    /**
+     * 切换到下一个可用密钥
+     * @param {string} keyName - 密钥名称
+     * @returns {boolean} 是否还有其他密钥可用
+     */
+    switchToNextKey(keyName) {
+      const allKeys = this.getAllKeys(keyName);
+      if (allKeys.length <= 1) {
+        console.warn(`[CC] No alternative keys available for ${keyName}`);
+        return false;
+      }
+      
+      const currentIndex = this.config.get('currentKeyIndex');
+      const newIndex = (currentIndex[keyName] + 1) % allKeys.length;
+      
+      // 更新索引
+      this.config.set('currentKeyIndex', {
+        ...currentIndex,
+        [keyName]: newIndex
+      });
+      
+      console.log(`[CC] 🔄 Switched to key ${newIndex + 1}/${allKeys.length} for ${keyName}`);
+      return newIndex !== 0; // 如果回到第一个密钥，说明已轮换一圈
+    }
+
+    /**
+     * 调用单个API（带重试机制和密钥轮换）
      * @param {Object} api - API配置对象
      * @param {string} baseCurrency - 基准货币代码
      * @param {number} retries - 重试次数（默认3次）
@@ -693,11 +802,13 @@
      */
     async callAPI(api, baseCurrency, retries = 3) {
       const keyName = api.name === 'exchangerate-api' ? 'exchangeRateApi' : api.name;
-      const apiKey = this.config.get('apiKeys')[keyName] || '';
+      const apiKey = this.getCurrentKey(keyName);
       
       // 显示正在使用的API密钥（部分遮盖）
       const maskedKey = apiKey ? `${apiKey.substring(0, 8)}****${apiKey.substring(apiKey.length - 4)}` : 'no-key';
-      console.log(`[CC] 调用 ${api.name} API (密钥: ${maskedKey})`);
+      const allKeys = this.getAllKeys(keyName);
+      const currentIndex = this.config.get('currentKeyIndex')[keyName] || 0;
+      console.log(`[CC] 调用 ${api.name} API (密钥 ${currentIndex + 1}/${allKeys.length}: ${maskedKey})`);
       
       const url = api.url
         .replace('{key}', apiKey)
@@ -895,37 +1006,52 @@
     buildPatterns() {
       return [
         {
-          // 符号在前：$123.45, €1,234.56, US$ 4.99
-          pattern: /([A-Z]{2,3})?[$¥€£₹₩]\s*([0-9]{1,3}(?:[,\s][0-9]{3})*(?:\.[0-9]{1,2})?)/g,
+          // 标准货币符号（扩展支持）：$123.45, €1,234.56, £99.99, ¥1000, ₹500, ₩1000
+          pattern: /([A-Z]{2,3})?\s*([$¥€£₹₩₱₦₪₴₽฿₡₵₸₺₼₾])\s*([0-9]{1,3}(?:[,\s][0-9]{3})*(?:\.[0-9]{1,2})?)/g,
           currencyGroup: 1,
-          amountGroup: 2,
+          symbolGroup: 2,
+          amountGroup: 3,
           prefixSymbol: true
         },
         {
-          // ISO代码 + 符号：US$ 123.45, HK$ 234.56
-          pattern: /([A-Z]{2})\$\s*([0-9]{1,3}(?:[,\s][0-9]{3})*(?:\.[0-9]{1,2})?)/g,
+          // 多字符货币符号：R$ 123.45, S$ 99.00, A$ 50.00, NZ$ 75, HK$ 100, NT$ 200
+          pattern: /\b([A-Z]{1,2})\$\s*([0-9]{1,3}(?:[,\s][0-9]{3})*(?:\.[0-9]{1,2})?)/g,
           currencyGroup: 1,
           amountGroup: 2,
           withPrefix: true
         },
         {
-          // ISO代码在前：USD 123.45, CNY 1234.56
+          // 特殊多字符符号：Rp 1.000, Rs. 500
+          pattern: /\b(Rp|Rs\.?)\s*([0-9]{1,3}(?:[,.\s][0-9]{3})*(?:[,.][0-9]{1,2})?)/g,
+          currencyGroup: 1,
+          amountGroup: 2,
+          specialSymbol: true
+        },
+        {
+          // ISO代码在前：USD 123.45, CNY 1234.56, EUR 99.99
           pattern: /\b([A-Z]{3})\s+([0-9]{1,3}(?:[,\s][0-9]{3})*(?:\.[0-9]{1,2})?)\b/g,
           currencyGroup: 1,
           amountGroup: 2
         },
         {
-          // 数字在前：123.45 USD, 1234 CNY
+          // 数字在前：123.45 USD, 1234 CNY, 99.99 EUR
           pattern: /\b([0-9]{1,3}(?:[,\s][0-9]{3})*(?:\.[0-9]{1,2})?)\s+([A-Z]{3})\b/g,
           amountGroup: 1,
           currencyGroup: 2
         },
         {
-          // 欧洲格式（小数点用逗号）：€1.234,56
-          pattern: /([€£])\s*([0-9]{1,3}(?:\.[0-9]{3})*(?:,[0-9]{1,2})?)/g,
+          // 欧洲格式（小数点用逗号）：€1.234,56, £9.999,99
+          pattern: /([€£₹])\s*([0-9]{1,3}(?:\.[0-9]{3})*(?:,[0-9]{1,2})?)/g,
           currencyGroup: 1,
           amountGroup: 2,
           europeanFormat: true
+        },
+        {
+          // 直播平台特殊格式（考虑更多变体）：US$ 4.99, CA$ 5.99
+          pattern: /\b([A-Z]{2,3})\s*[$]\s*([0-9]{1,3}(?:[,\s][0-9]{3})*(?:\.[0-9]{1,2})?)/gi,
+          currencyGroup: 1,
+          amountGroup: 2,
+          streamingFormat: true
         }
       ];
     }
@@ -1046,11 +1172,29 @@
       let currency = match[patternDef.currencyGroup];
       const amountStr = match[patternDef.amountGroup];
       
-      // 处理带前缀的货币符号（如 US$, HK$）
-      if (patternDef.withPrefix && currency) {
+      // 处理不同的货币符号格式
+      if (patternDef.symbolGroup) {
+        // 新格式：支持扩展货币符号
+        const symbol = match[patternDef.symbolGroup];
+        const prefix = match[patternDef.currencyGroup];
+        if (prefix && prefix.length > 0) {
+          // 带前缀：US$, HK$, CA$
+          currency = prefix + symbol;
+        } else {
+          // 纯符号：$, €, £, ₹
+          currency = symbol;
+        }
+      } else if (patternDef.withPrefix && currency) {
+        // 多字符货币符号：R$, S$, A$
+        currency = currency + '$';
+      } else if (patternDef.specialSymbol) {
+        // 特殊符号：Rp, Rs
+        currency = currency;
+      } else if (patternDef.streamingFormat) {
+        // 直播平台格式：US$, CA$
         currency = currency + '$';
       } else if (patternDef.prefixSymbol) {
-        // 从匹配的文本中提取完整的货币符号
+        // 旧格式：从匹配的文本中提取完整的货币符号
         const symbolMatch = match[0].match(/([A-Z]{2,3})?[$¥€£₹₩]/);
         if (symbolMatch) {
           currency = symbolMatch[0];
@@ -1072,6 +1216,7 @@
      */
     normalizeCurrency(currencyStr) {
       const symbolMap = {
+        // 标准货币符号
         '$': 'USD',
         '¥': 'CNY',  // 默认CNY，也可能是JPY
         '€': 'EUR',
@@ -1079,16 +1224,56 @@
         '₹': 'INR',
         '₩': 'KRW',
         '₽': 'RUB',
-        'A$': 'AUD',
-        'AU$': 'AUD',
-        'C$': 'CAD',
-        'CA$': 'CAD',
+        '₱': 'PHP',
+        '₦': 'NGN',
+        '₪': 'ILS',
+        '₴': 'UAH',
+        '฿': 'THB',
+        '₡': 'CRC',
+        '₵': 'GHS',
+        '₸': 'KZT',
+        '₺': 'TRY',
+        '₼': 'AZN',
+        '₾': 'GEL',
+        
+        // 多字符货币符号（美元系）
+        'A$': 'AUD', 'AU$': 'AUD',
+        'C$': 'CAD', 'CA$': 'CAD',
         'HK$': 'HKD',
         'NT$': 'TWD',
-        'S$': 'SGD',
-        'SG$': 'SGD',
+        'S$': 'SGD', 'SG$': 'SGD',
         'US$': 'USD',
-        'NZ$': 'NZD'
+        'NZ$': 'NZD',
+        'R$': 'BRL',
+        
+        // 特殊符号
+        'Rp': 'IDR',
+        'Rs': 'INR', 'Rs.': 'INR',
+        
+        // ISO代码前缀（处理歧义）
+        'US': 'USD',
+        'CA': 'CAD',
+        'AU': 'AUD',
+        'NZ': 'NZD',
+        'HK': 'HKD',
+        'SG': 'SGD',
+        'NT': 'TWD',
+        'BR': 'BRL',
+        'MX': 'MXN',
+        'AR': 'ARS',
+        'CL': 'CLP',
+        'CO': 'COP',
+        'PE': 'PEN',
+        'TH': 'THB',
+        'MY': 'MYR',
+        'ID': 'IDR',
+        'PH': 'PHP',
+        'VN': 'VND',
+        'IN': 'INR',
+        'TR': 'TRY',
+        'IL': 'ILS',
+        'ZA': 'ZAR',
+        'NG': 'NGN'
       };
       
       return symbolMap[currencyStr] || currencyStr;
@@ -2088,7 +2273,25 @@ ${this.i18n.t('config.userCountryCurrency')}: ${this.config.get('userCountryCurr
      * 创建设置面板
      */
     create() {
-      const allCurrencies = ['USD', 'CNY', 'EUR', 'GBP', 'JPY', 'HKD', 'TWD', 'KRW', 'AUD', 'CAD', 'SGD', 'CHF', 'RUB', 'INR', 'BRL'];
+      // 50+种主流货币（按地区分组）
+      const allCurrencies = [
+        // 主要货币
+        'USD', 'EUR', 'GBP', 'JPY', 'CHF',
+        // 亚洲
+        'CNY', 'HKD', 'TWD', 'KRW', 'SGD', 'THB', 'MYR', 'IDR', 'PHP', 'VND', 'INR', 'PKR', 'BDT', 'LKR', 'NPR',
+        // 大洋洲
+        'AUD', 'NZD',
+        // 北美
+        'CAD', 'MXN',
+        // 南美
+        'BRL', 'ARS', 'CLP', 'COP', 'PEN',
+        // 欧洲
+        'RUB', 'PLN', 'CZK', 'HUF', 'RON', 'BGN', 'HRK', 'SEK', 'NOK', 'DKK', 'ISK', 'TRY', 'UAH',
+        // 中东
+        'AED', 'SAR', 'QAR', 'KWD', 'BHD', 'OMR', 'JOD', 'ILS', 'EGP',
+        // 非洲
+        'ZAR', 'NGN', 'KES', 'GHS', 'MAD', 'TND', 'DZD'
+      ];
       
       const panel = document.createElement('div');
       panel.className = 'cc-settings-panel';
@@ -2145,14 +2348,9 @@ ${this.i18n.t('config.userCountryCurrency')}: ${this.config.get('userCountryCurr
                   <strong>${this.i18n.t('settings.inlineCurrency')}</strong>
                 </label>
                 <select id="cc-inline-currency">
-                  <option value="CNY">CNY - 人民币</option>
-                  <option value="USD">USD - 美元</option>
-                  <option value="EUR">EUR - 欧元</option>
-                  <option value="GBP">GBP - 英镑</option>
-                  <option value="JPY">JPY - 日元</option>
-                  <option value="HKD">HKD - 港币</option>
-                  <option value="TWD">TWD - 新台币</option>
-                  <option value="KRW">KRW - 韩元</option>
+                  ${allCurrencies.slice(0, 30).map(code => `
+                    <option value="${code}">${code} - ${CURRENCY_NAMES_ZH[code] || code}</option>
+                  `).join('')}
                 </select>
                 <small>${this.i18n.t('settings.inlineCurrencyDesc')}</small>
               </div>
@@ -2188,6 +2386,10 @@ ${this.i18n.t('config.userCountryCurrency')}: ${this.config.get('userCountryCurr
                 </label>
                 <small>${this.i18n.t('config.freeQuota')}: 1,500 ${this.i18n.t('config.requestsPerMonth')}</small>
                 <input type="text" id="cc-key-exchangerate" placeholder="${this.i18n.t('settings.placeholder')}" />
+                <details style="margin-top: 8px;">
+                  <summary style="cursor: pointer; color: #3b82f6; font-size: 13px;">🔄 备用密钥池（可选，支持轮换）</summary>
+                  <textarea id="cc-keypool-exchangerate" rows="2" placeholder="每行输入一个备用密钥&#10;配额用完时自动切换" style="width: 100%; margin-top: 6px; padding: 6px; border: 1px solid #d1d5db; border-radius: 4px; font-family: monospace; font-size: 12px;"></textarea>
+                </details>
               </div>
 
               <div class="cc-setting-group">
@@ -2197,6 +2399,10 @@ ${this.i18n.t('config.userCountryCurrency')}: ${this.config.get('userCountryCurr
                 </label>
                 <small>${this.i18n.t('config.freeQuota')}: 100 ${this.i18n.t('config.requestsPerMonth')}</small>
                 <input type="text" id="cc-key-fixer" placeholder="${this.i18n.t('settings.placeholder')}" />
+                <details style="margin-top: 8px;">
+                  <summary style="cursor: pointer; color: #3b82f6; font-size: 13px;">🔄 备用密钥池（可选，支持轮换）</summary>
+                  <textarea id="cc-keypool-fixer" rows="2" placeholder="每行输入一个备用密钥&#10;配额用完时自动切换" style="width: 100%; margin-top: 6px; padding: 6px; border: 1px solid #d1d5db; border-radius: 4px; font-family: monospace; font-size: 12px;"></textarea>
+                </details>
               </div>
 
               <div class="cc-setting-group">
@@ -2206,6 +2412,10 @@ ${this.i18n.t('config.userCountryCurrency')}: ${this.config.get('userCountryCurr
                 </label>
                 <small>${this.i18n.t('config.freeQuota')}: 300 ${this.i18n.t('config.requestsPerMonth')}</small>
                 <input type="text" id="cc-key-currencyapi" placeholder="${this.i18n.t('settings.placeholder')}" />
+                <details style="margin-top: 8px;">
+                  <summary style="cursor: pointer; color: #3b82f6; font-size: 13px;">🔄 备用密钥池（可选，支持轮换）</summary>
+                  <textarea id="cc-keypool-currencyapi" rows="2" placeholder="每行输入一个备用密钥&#10;配额用完时自动切换" style="width: 100%; margin-top: 6px; padding: 6px; border: 1px solid #d1d5db; border-radius: 4px; font-family: monospace; font-size: 12px;"></textarea>
+                </details>
               </div>
             </div>
 
@@ -2398,6 +2608,22 @@ ${this.i18n.t('config.userCountryCurrency')}: ${this.config.get('userCountryCurr
       if (currencyapiInput && apiKeys.currencyapi) {
         currencyapiInput.value = apiKeys.currencyapi;
       }
+      
+      // 加载API密钥池
+      const apiKeyPools = this.config.get('apiKeyPools');
+      const exchangePoolInput = document.getElementById('cc-keypool-exchangerate');
+      const fixerPoolInput = document.getElementById('cc-keypool-fixer');
+      const currencyapiPoolInput = document.getElementById('cc-keypool-currencyapi');
+      
+      if (exchangePoolInput && apiKeyPools.exchangeRateApi) {
+        exchangePoolInput.value = apiKeyPools.exchangeRateApi.join('\n');
+      }
+      if (fixerPoolInput && apiKeyPools.fixer) {
+        fixerPoolInput.value = apiKeyPools.fixer.join('\n');
+      }
+      if (currencyapiPoolInput && apiKeyPools.currencyapi) {
+        currencyapiPoolInput.value = apiKeyPools.currencyapi.join('\n');
+      }
 
       // 加载自定义汇率设置
       const enableCustomRates = document.getElementById('cc-enable-custom-rates');
@@ -2527,6 +2753,26 @@ ${this.i18n.t('config.userCountryCurrency')}: ${this.config.get('userCountryCurr
       newApiKeys.exchangeRateApi = exchangeKey || DEFAULT_CONFIG.apiKeys.exchangeRateApi;
       newApiKeys.fixer = fixerKey || DEFAULT_CONFIG.apiKeys.fixer;
       newApiKeys.currencyapi = currencyapiKey || DEFAULT_CONFIG.apiKeys.currencyapi;
+      
+      // 获取API密钥池
+      const exchangePool = document.getElementById('cc-keypool-exchangerate').value
+        .split('\n')
+        .map(k => k.trim())
+        .filter(k => k);
+      const fixerPool = document.getElementById('cc-keypool-fixer').value
+        .split('\n')
+        .map(k => k.trim())
+        .filter(k => k);
+      const currencyapiPool = document.getElementById('cc-keypool-currencyapi').value
+        .split('\n')
+        .map(k => k.trim())
+        .filter(k => k);
+      
+      const newApiKeyPools = {
+        exchangeRateApi: exchangePool,
+        fixer: fixerPool,
+        currencyapi: currencyapiPool
+      };
 
       // 获取自定义汇率设置
       const enableCustomRates = document.getElementById('cc-enable-custom-rates').checked;
@@ -2585,7 +2831,8 @@ ${this.i18n.t('config.userCountryCurrency')}: ${this.config.get('userCountryCurr
         enableCustomRates: enableCustomRates,
         customRates: customRates,
         targetCurrencies: selectedCurrencies,
-        apiKeys: newApiKeys
+        apiKeys: newApiKeys,
+        apiKeyPools: newApiKeyPools
       };
 
       // 如果禁用了自动检测，清除缓存的国家货币
@@ -3687,7 +3934,7 @@ ${this.i18n.t('config.userCountryCurrency')}: ${this.config.get('userCountryCurr
    * 主初始化函数
    */
   function init() {
-    console.log('%c💱 Currency Converter v1.4.2 Loaded', 
+    console.log('%c💱 Currency Converter v1.5.0 Loaded', 
       'color: #667eea; font-size: 14px; font-weight: bold;');
 
     try {
