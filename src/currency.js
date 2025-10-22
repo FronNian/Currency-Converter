@@ -2,11 +2,11 @@
 // @name         ✨✨✨全能货币转换器 - Universal Currency Converter✨✨✨
 // @name:en      Universal Currency Converter
 // @namespace    https://greasyfork.org/users/currency-converter
-// @version      1.3.0
+// @version      1.4.0
 // @description  ✨✨✨智能识别网页价格，鼠标悬停即可查看实时汇率转换。支持15+主流货币，使用免费API，数据缓存，性能优化。
 // @description:en  Intelligently detect prices on web pages and view real-time currency conversions on hover. Supports 15+ major currencies with free APIs, data caching, and performance optimization.
 // @author       FronNian
-// @copyright    2025, FronNian (2081610040@qq.com)
+// @copyright    2025, FronNian (huayuan4564@gmail.com)
 // @match        *://*/*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
@@ -29,7 +29,7 @@
 
   /*
    * 全能货币转换器 - Universal Currency Converter
-   * Copyright (C) 2025 FronNian (2081610040@qq.com)
+   * Copyright (C) 2025 FronNian (huayuan4564@gmail.com)
    * 
    * This program is free software: you can redistribute it and/or modify
    * it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@
    * GNU General Public License for more details.
    * 
    * 如果您修改了此代码，请：
-   * 1. 保留原作者信息（FronNian - 2081610040@qq.com）
+   * 1. 保留原作者信息（FronNian - huayuan4564@gmail.com）
    * 2. 注明修改内容
    * 3. 使用相同的GPL-3.0许可证
    * 4. 建议通知原作者（邮箱或GreasyFork评论区）
@@ -50,7 +50,7 @@
    * 完整许可证: https://www.gnu.org/licenses/gpl-3.0.txt
    */
 
-  // API密钥配置（用户提供）
+  // API密钥配置
   // ExchangeRate-API: 04529d4768099d362afffc31
   // Fixer.io: 147078d87fed12fc4266aa216b3c98c9
   // CurrencyAPI: cur_live_cqiOETlTuk2UvLSDONtdIxhTZIlq6PPElZ9wtxlv
@@ -62,6 +62,9 @@
    * @type {Object}
    */
   const DEFAULT_CONFIG = {
+    // 界面语言
+    language: 'auto',  // auto: 自动检测, zh-CN, en, ja, ko
+    
     // 目标货币列表（最多5个，可在设置中修改）
     targetCurrencies: ['CNY', 'USD', 'EUR', 'GBP', 'JPY'],
     
@@ -70,6 +73,16 @@
     excludeSourceCurrency: true, // 排除原货币（如价格是USD就不显示USD转换）
     userCountryCurrency: null,  // 用户所在国家货币（自动检测后保存）
     maxDisplayCurrencies: 3,    // 最多显示的货币数量
+    
+    // 内联显示模式
+    inlineMode: false,          // 直接在价格旁显示转换结果，无需悬停
+    inlineShowCurrency: 'CNY',  // 内联模式显示的货币（默认显示第一个）
+    
+    // 自定义汇率（离线模式）
+    enableCustomRates: false,   // 启用自定义汇率
+    customRates: {              // 自定义汇率表（基准货币：USD）
+      // 示例：'CNY': 7.25 表示 1 USD = 7.25 CNY
+    },
     
     // API密钥配置
     apiKeys: {
@@ -93,8 +106,6 @@
     minAmount: 0.01,         // 最小金额
     maxAmount: 999999999,    // 最大金额
     
-    // 语言
-    language: 'zh-CN'
   };
 
   /* ==================== 配置管理模块 ==================== */
@@ -219,6 +230,89 @@
      */
     getAll() {
       return { ...this.config };
+    }
+  }
+
+  /* ==================== 国际化翻译 ==================== */
+  
+  /**
+   * 多语言翻译对象
+   * 支持中文(zh-CN)、英文(en)、日文(ja)、韩文(ko)
+   */
+  const I18N_TRANSLATIONS = {
+    'zh-CN': {
+      tooltip: { update: '更新', history: '历史', errorUnavailable: '汇率数据暂时不可用', errorQuota: '可能是API配额用完了', errorHint: '点击油猴菜单 → 设置面板', close: '关闭' },
+      settings: { title: '货币转换器设置', smartDisplay: '智能显示', autoDetect: '根据IP自动检测所在国家', autoDetectDesc: '启用后，优先显示你所在国家的货币（首次加载时检测）', excludeSource: '排除原货币', excludeSourceDesc: '转换结果中不显示原价格的货币（例如：美元价格不再显示美元转换）', maxDisplay: '最多显示货币数量', inlineMode: '一键批量显示模式', inlineModeDesc: '直接在价格旁显示转换结果，无需鼠标悬停（Alt+I 切换）', inlineCurrency: '内联显示货币', inlineCurrencyDesc: '选择在内联模式中显示的货币', targetCurrency: '目标货币', targetCurrencyDesc: '选择2-5个要转换的目标货币', apiKeys: 'API密钥（可选）', apiKeysDesc: '如果默认API配额用完，可以免费申请自己的API密钥：', getKey: '获取密钥', placeholder: '留空使用默认密钥', customRates: '自定义汇率（离线模式）', enableCustom: '启用自定义汇率', enableCustomDesc: '开启后将使用您手动设置的汇率，不再调用API（适用于离线或固定汇率场景）', customTip: '所有汇率以 USD（美元） 为基准货币', customExample: '例如：输入 CNY = 7.25 表示 1美元 = 7.25人民币', hotkeys: '快捷键', hotkeysAvailable: '可用的快捷键：', language: '界面语言', languageDesc: '选择界面显示语言', cancel: '取消', save: '保存并刷新' },
+      menu: { settings: '⚙️ 设置面板', reset: '🔄 重置配置', view: '🔍 查看当前配置', calculator: '💱 货币计算器 (Alt+C)' },
+      calculator: { title: '货币计算器', rate: '汇率', updated: '更新', error: '无法获取汇率数据' },
+      messages: { saved: '✅ 配置已保存！\n\n页面即将刷新以应用新设置。', resetConfirm: '确定要重置所有配置吗？\n这将恢复到默认设置。', resetSuccess: '✅ 配置已重置！', minCurrency: '❌ 请至少选择2个目标货币！', maxCurrency: '❌ 最多只能选择5个目标货币！', invalidRate: '❌ 无效的汇率值', invalidRateDesc: '请输入大于0的数字！', minCustomRate: '❌ 请至少设置一个货币的汇率，或关闭自定义汇率功能！' }
+    },
+    'en': {
+      tooltip: { update: 'Updated', history: 'History', errorUnavailable: 'Exchange rate data temporarily unavailable', errorQuota: 'API quota may be exhausted', errorHint: 'Click Tampermonkey Menu → Settings', close: 'Close' },
+      settings: { title: 'Currency Converter Settings', smartDisplay: 'Smart Display', autoDetect: 'Auto-detect country by IP', autoDetectDesc: 'When enabled, prioritize displaying your country\'s currency', excludeSource: 'Exclude source currency', excludeSourceDesc: 'Don\'t show the original currency in conversion results', maxDisplay: 'Max currencies to display', inlineMode: 'Batch Inline Display Mode', inlineModeDesc: 'Show conversion results directly next to prices (Alt+I to toggle)', inlineCurrency: 'Inline display currency', inlineCurrencyDesc: 'Select the currency to display in inline mode', targetCurrency: 'Target Currencies', targetCurrencyDesc: 'Select 2-5 target currencies for conversion', apiKeys: 'API Keys (Optional)', apiKeysDesc: 'If default API quota is exhausted, you can apply for free API keys:', getKey: 'Get Key', placeholder: 'Leave blank to use default key', customRates: 'Custom Exchange Rates (Offline Mode)', enableCustom: 'Enable custom rates', enableCustomDesc: 'When enabled, use your manually set rates instead of API calls', customTip: 'All rates are based on USD (US Dollar)', customExample: 'Example: CNY = 7.25 means 1 USD = 7.25 CNY', hotkeys: 'Keyboard Shortcuts', hotkeysAvailable: 'Available shortcuts:', language: 'Interface Language', languageDesc: 'Select interface display language', cancel: 'Cancel', save: 'Save & Refresh' },
+      menu: { settings: '⚙️ Settings', reset: '🔄 Reset Config', view: '🔍 View Current Config', calculator: '💱 Currency Calculator (Alt+C)' },
+      calculator: { title: 'Currency Calculator', rate: 'Rate', updated: 'Updated', error: 'Unable to fetch exchange rates' },
+      messages: { saved: '✅ Settings saved!\n\nPage will refresh to apply changes.', resetConfirm: 'Reset all settings to defaults?', resetSuccess: '✅ Settings reset!', minCurrency: '❌ Please select at least 2 target currencies!', maxCurrency: '❌ Maximum 5 target currencies allowed!', invalidRate: '❌ Invalid exchange rate', invalidRateDesc: 'Please enter a number greater than 0!', minCustomRate: '❌ Please set at least one currency rate, or disable custom rates!' }
+    },
+    'ja': {
+      tooltip: { update: '更新', history: '履歴', errorUnavailable: '為替レートデータが一時的に利用できません', errorQuota: 'APIクォータが使い果たされた可能性があります', errorHint: 'Tampermonkeyメニュー → 設定', close: '閉じる' },
+      settings: { title: '通貨換算設定', smartDisplay: 'スマート表示', autoDetect: 'IPで国を自動検出', autoDetectDesc: '有効にすると、あなたの国の通貨を優先表示します', excludeSource: '元の通貨を除外', excludeSourceDesc: '換算結果に元の通貨を表示しない', maxDisplay: '最大表示通貨数', inlineMode: '一括インライン表示モード', inlineModeDesc: '価格の横に直接換算結果を表示（Alt+I で切替）', inlineCurrency: 'インライン表示通貨', inlineCurrencyDesc: 'インラインモードで表示する通貨を選択', targetCurrency: '対象通貨', targetCurrencyDesc: '換算する通貨を2～5個選択', apiKeys: 'APIキー（オプション）', apiKeysDesc: 'デフォルトのAPIクォータが使い果たされた場合、無料でAPIキーを申請できます：', getKey: 'キー取得', placeholder: '空白でデフォルトキーを使用', customRates: 'カスタム為替レート（オフラインモード）', enableCustom: 'カスタムレートを有効化', enableCustomDesc: '有効にすると、APIの代わりに手動設定したレートを使用します', customTip: 'すべてのレートはUSD（米ドル）を基準にしています', customExample: '例：CNY = 7.25 は 1米ドル = 7.25人民元を意味します', hotkeys: 'キーボードショートカット', hotkeysAvailable: '利用可能なショートカット：', language: 'インターフェース言語', languageDesc: 'インターフェース表示言語を選択', cancel: 'キャンセル', save: '保存して更新' },
+      menu: { settings: '⚙️ 設定', reset: '🔄 リセット', view: '🔍 現在の設定を表示', calculator: '💱 通貨計算機 (Alt+C)' },
+      calculator: { title: '通貨計算機', rate: 'レート', updated: '更新', error: '為替レートを取得できません' },
+      messages: { saved: '✅ 設定を保存しました！\n\nページを更新して変更を適用します。', resetConfirm: 'すべての設定をデフォルトにリセットしますか？', resetSuccess: '✅ 設定をリセットしました！', minCurrency: '❌ 少なくとも2つの通貨を選択してください！', maxCurrency: '❌ 最大5つまでの通貨を選択できます！', invalidRate: '❌ 無効な為替レート', invalidRateDesc: '0より大きい数値を入力してください！', minCustomRate: '❌ 少なくとも1つの通貨レートを設定するか、カスタムレートを無効にしてください！' }
+    },
+    'ko': {
+      tooltip: { update: '업데이트', history: '기록', errorUnavailable: '환율 데이터를 일시적으로 사용할 수 없습니다', errorQuota: 'API 할당량이 소진되었을 수 있습니다', errorHint: 'Tampermonkey 메뉴 → 설정', close: '닫기' },
+      settings: { title: '통화 변환기 설정', smartDisplay: '스마트 표시', autoDetect: 'IP로 국가 자동 감지', autoDetectDesc: '활성화하면 귀하의 국가 통화를 우선 표시합니다', excludeSource: '원본 통화 제외', excludeSourceDesc: '변환 결과에 원본 통화를 표시하지 않음', maxDisplay: '최대 표시 통화 수', inlineMode: '일괄 인라인 표시 모드', inlineModeDesc: '가격 옆에 직접 변환 결과 표시 (Alt+I로 전환)', inlineCurrency: '인라인 표시 통화', inlineCurrencyDesc: '인라인 모드에서 표시할 통화 선택', targetCurrency: '대상 통화', targetCurrencyDesc: '변환할 통화 2~5개 선택', apiKeys: 'API 키 (선택사항)', apiKeysDesc: '기본 API 할당량이 소진된 경우 무료로 API 키를 신청할 수 있습니다:', getKey: '키 받기', placeholder: '비워두면 기본 키 사용', customRates: '사용자 정의 환율 (오프라인 모드)', enableCustom: '사용자 정의 환율 활성화', enableCustomDesc: '활성화하면 API 대신 수동 설정한 환율을 사용합니다', customTip: '모든 환율은 USD (미국 달러)를 기준으로 합니다', customExample: '예: CNY = 7.25는 1달러 = 7.25위안을 의미합니다', hotkeys: '키보드 단축키', hotkeysAvailable: '사용 가능한 단축키:', language: '인터페이스 언어', languageDesc: '인터페이스 표시 언어 선택', cancel: '취소', save: '저장 및 새로고침' },
+      menu: { settings: '⚙️ 설정', reset: '🔄 재설정', view: '🔍 현재 설정 보기', calculator: '💱 통화 계산기 (Alt+C)' },
+      calculator: { title: '통화 계산기', rate: '환율', updated: '업데이트됨', error: '환율 데이터를 가져올 수 없습니다' },
+      messages: { saved: '✅ 설정이 저장되었습니다!\n\n변경사항을 적용하기 위해 페이지를 새로고침합니다.', resetConfirm: '모든 설정을 기본값으로 재설정하시겠습니까?', resetSuccess: '✅ 설정이 재설정되었습니다!', minCurrency: '❌ 최소 2개의 통화를 선택하세요!', maxCurrency: '❌ 최대 5개의 통화까지 선택할 수 있습니다!', invalidRate: '❌ 잘못된 환율', invalidRateDesc: '0보다 큰 숫자를 입력하세요!', minCustomRate: '❌ 최소 하나의 통화 환율을 설정하거나 사용자 정의 환율을 비활성화하세요!' }
+    }
+  };
+
+  /**
+   * 国际化管理器类
+   */
+  class I18nManager {
+    constructor(configManager) {
+      this.config = configManager;
+      this.currentLang = this.detectLanguage();
+      this.translations = I18N_TRANSLATIONS[this.currentLang] || I18N_TRANSLATIONS['zh-CN'];
+    }
+
+    detectLanguage() {
+      const savedLang = this.config.get('language');
+      if (savedLang && savedLang !== 'auto') return savedLang;
+      const browserLang = navigator.language || navigator.userLanguage;
+      if (browserLang.startsWith('zh')) return 'zh-CN';
+      if (browserLang.startsWith('ja')) return 'ja';
+      if (browserLang.startsWith('ko')) return 'ko';
+      return 'en';
+    }
+
+    t(key, params = {}) {
+      const keys = key.split('.');
+      let value = this.translations;
+      for (const k of keys) {
+        value = value?.[k];
+        if (!value) return key;
+      }
+      if (typeof value === 'string' && Object.keys(params).length > 0) {
+        return value.replace(/\{(\w+)\}/g, (match, param) => params[param] || match);
+      }
+      return value;
+    }
+
+    setLanguage(lang) {
+      if (I18N_TRANSLATIONS[lang]) {
+        this.currentLang = lang;
+        this.translations = I18N_TRANSLATIONS[lang];
+        this.config.set('language', lang);
+      }
+    }
+
+    getCurrentLanguage() {
+      return this.currentLang;
     }
   }
 
@@ -507,6 +601,16 @@
      * @returns {Promise<Object>} 汇率数据对象
      */
     async getRates(baseCurrency = 'USD') {
+      // 检查是否启用自定义汇率
+      if (this.config.get('enableCustomRates')) {
+        const customRates = this.buildCustomRates(baseCurrency);
+        if (customRates) {
+          console.log('[CC] 使用自定义汇率（离线模式）');
+          this.currentRates = customRates;
+          return customRates;
+        }
+      }
+
       // 检查缓存
       const cached = this.getFromCache(baseCurrency);
       if (cached && !this.isExpired(cached)) {
@@ -712,6 +816,55 @@
      */
     isExpired(cached) {
       return Date.now() > cached.expiresAt;
+    }
+
+    /**
+     * 构建自定义汇率数据
+     * @param {string} baseCurrency - 基准货币
+     * @returns {Object|null} 汇率数据对象或null
+     */
+    buildCustomRates(baseCurrency) {
+      const customRates = this.config.get('customRates') || {};
+      
+      // 如果没有配置任何自定义汇率，返回null
+      if (Object.keys(customRates).length === 0) {
+        console.warn('[CC] 自定义汇率已启用，但未配置任何汇率数据');
+        return null;
+      }
+
+      // 如果基准货币是USD，直接返回自定义汇率
+      if (baseCurrency === 'USD') {
+        return {
+          base: 'USD',
+          date: new Date().toISOString().split('T')[0],
+          rates: { USD: 1, ...customRates }
+        };
+      }
+
+      // 如果基准货币不是USD，需要换算
+      if (!customRates[baseCurrency]) {
+        console.warn(`[CC] 自定义汇率中未配置 ${baseCurrency} 的汇率`);
+        return null;
+      }
+
+      const baseRate = customRates[baseCurrency];
+      const convertedRates = {};
+      
+      // 换算所有汇率（以新基准货币为准）
+      convertedRates[baseCurrency] = 1;
+      convertedRates['USD'] = 1 / baseRate;
+      
+      for (const [currency, rate] of Object.entries(customRates)) {
+        if (currency !== baseCurrency) {
+          convertedRates[currency] = rate / baseRate;
+        }
+      }
+
+      return {
+        base: baseCurrency,
+        date: new Date().toISOString().split('T')[0],
+        rates: convertedRates
+      };
     }
   }
 
@@ -1060,8 +1213,91 @@
         element.dataset.ccCurrency = priceData.currency;
         element.classList.add('cc-price-detected');
         this.detectedElements.set(element, priceData);
+        
+        // 内联显示模式
+        if (this.config.get('inlineMode')) {
+          this.addInlineConversion(element, priceData);
+        }
       } catch (error) {
         console.warn('[CC] Failed to mark element:', error);
+      }
+    }
+
+    /**
+     * 添加内联转换显示
+     * @param {HTMLElement} element - 价格元素
+     * @param {Object} priceData - 价格数据
+     */
+    async addInlineConversion(element, priceData) {
+      // 检查是否已添加
+      if (element.querySelector('.cc-inline-conversion')) return;
+      
+      try {
+        // 获取要显示的目标货币
+        const inlineCurrency = this.config.get('inlineShowCurrency') || 'CNY';
+        
+        // 如果目标货币与原货币相同，不显示
+        if (inlineCurrency === priceData.currency) return;
+        
+        // 创建内联元素
+        const inlineElement = document.createElement('span');
+        inlineElement.className = 'cc-inline-conversion';
+        inlineElement.dataset.loading = 'true';
+        inlineElement.textContent = '...';
+        
+        // 插入到价格元素后面
+        if (element.nextSibling) {
+          element.parentNode.insertBefore(inlineElement, element.nextSibling);
+        } else {
+          element.parentNode.appendChild(inlineElement);
+        }
+        
+        // 异步获取汇率并更新
+        this.updateInlineConversion(inlineElement, priceData, inlineCurrency);
+      } catch (error) {
+        console.warn('[CC] Failed to add inline conversion:', error);
+      }
+    }
+
+    /**
+     * 更新内联转换显示
+     * @param {HTMLElement} inlineElement - 内联元素
+     * @param {Object} priceData - 价格数据
+     * @param {string} toCurrency - 目标货币
+     */
+    async updateInlineConversion(inlineElement, priceData, toCurrency) {
+      try {
+        // 这个方法会在TooltipManager初始化时被替换
+        // 因为需要访问rateManager
+        inlineElement.textContent = '...';
+      } catch (error) {
+        inlineElement.textContent = '';
+        inlineElement.style.display = 'none';
+      }
+    }
+
+    /**
+     * 移除所有内联转换显示
+     */
+    removeAllInlineConversions() {
+      document.querySelectorAll('.cc-inline-conversion').forEach(el => el.remove());
+    }
+
+    /**
+     * 刷新所有内联转换显示
+     */
+    async refreshAllInlineConversions() {
+      const inlineElements = document.querySelectorAll('.cc-inline-conversion');
+      for (const element of inlineElements) {
+        const priceElement = element.previousSibling;
+        if (priceElement && priceElement.dataset.ccOriginalPrice) {
+          const priceData = {
+            amount: parseFloat(priceElement.dataset.ccOriginalPrice),
+            currency: priceElement.dataset.ccCurrency
+          };
+          const toCurrency = this.config.get('inlineShowCurrency') || 'CNY';
+          await this.updateInlineConversion(element, priceData, toCurrency);
+        }
       }
     }
   }
@@ -1073,9 +1309,10 @@
    * 负责监听鼠标事件、渲染工具提示、显示转换结果
    */
   class TooltipManager {
-    constructor(rateManager, configManager) {
+    constructor(rateManager, configManager, i18n) {
       this.rateManager = rateManager;
       this.config = configManager;
+      this.i18n = i18n;
       this.currentTooltip = null;
       this.hoverTimer = null;
       this.hideTimer = null;
@@ -1232,10 +1469,10 @@
     buildTooltipHTML(data) {
       const { original, conversions, rates, timestamp } = data;
       
-      const updateTime = new Date(timestamp).toLocaleTimeString('zh-CN');
+      const updateTime = new Date(timestamp).toLocaleTimeString();
       
       return `
-        <button class="cc-tooltip-close" title="关闭">&times;</button>
+        <button class="cc-tooltip-close" title="${this.i18n.t('tooltip.close')}">&times;</button>
         <div class="cc-tooltip-header">
           <span class="cc-original">
             ${this.formatCurrency(original.amount, original.currency)}
@@ -1250,8 +1487,15 @@
           `).join('')}
         </div>
         <div class="cc-tooltip-footer">
-          <span class="cc-update-time">更新: ${updateTime}</span>
+          <span class="cc-update-time">${this.i18n.t('tooltip.update')}: ${updateTime}</span>
           <span class="cc-source">${rates.source}</span>
+          <a href="https://www.xe.com/currencyconverter/convert/?Amount=1&From=${original.currency}&To=USD" 
+             target="_blank" 
+             class="cc-history-link" 
+             title="${this.i18n.t('tooltip.history')}"
+             onclick="event.stopPropagation()">
+            📊 ${this.i18n.t('tooltip.history')}
+          </a>
         </div>
       `;
     }
@@ -1271,13 +1515,13 @@
       const isApiQuotaError = message.includes('不可用') || message.includes('failed');
       
       tooltip.innerHTML = `
-        <button class="cc-tooltip-close" title="关闭">&times;</button>
+        <button class="cc-tooltip-close" title="${this.i18n.t('tooltip.close')}">&times;</button>
         <div class="cc-tooltip-body">
           <div class="cc-error-message">⚠️ ${Utils.escapeHTML(message)}</div>
           ${isApiQuotaError ? `
             <div class="cc-error-hint">
-              💡 可能是API配额用完了<br>
-              <small>点击油猴菜单 → API密钥配置</small>
+              💡 ${this.i18n.t('tooltip.errorQuota')}<br>
+              <small>${this.i18n.t('tooltip.errorHint')}</small>
             </div>
           ` : ''}
         </div>
@@ -1419,6 +1663,44 @@
           text-decoration-style: dotted;
           text-decoration-color: #667eea;
           text-underline-offset: 2px;
+        }
+
+        /* 内联转换显示样式 */
+        .cc-inline-conversion {
+          display: inline;
+          margin-left: 4px;
+          font-size: 0.9em;
+          color: #10b981;
+          font-weight: 500;
+          opacity: 0;
+          animation: cc-fade-in 0.3s ease forwards;
+        }
+
+        .cc-inline-conversion[data-loading="true"] {
+          color: #9ca3af;
+          opacity: 0.6;
+        }
+
+        @keyframes cc-fade-in {
+          from {
+            opacity: 0;
+            transform: translateX(-4px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        /* 暗色模式下的内联转换 */
+        @media (prefers-color-scheme: dark) {
+          .cc-inline-conversion {
+            color: #34d399;
+          }
+          
+          .cc-inline-conversion[data-loading="true"] {
+            color: #6b7280;
+          }
         }
 
         /* 工具提示基础样式 */
@@ -1567,6 +1849,23 @@
           text-transform: uppercase;
         }
 
+        .cc-history-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 2px;
+          padding: 2px 6px;
+          font-size: 11px;
+          color: #3b82f6;
+          text-decoration: none;
+          border-radius: 4px;
+          transition: all 0.2s;
+        }
+
+        .cc-history-link:hover {
+          background: #eff6ff;
+          color: #2563eb;
+        }
+
         /* 错误消息样式 */
         .cc-error-message {
           text-align: center;
@@ -1629,6 +1928,15 @@
             color: #6b7280;
           }
 
+          .cc-history-link {
+            color: #60a5fa;
+          }
+
+          .cc-history-link:hover {
+            background: #1e3a8a;
+            color: #93c5fd;
+          }
+
           .cc-error-hint {
             border-top-color: #374151;
           }
@@ -1687,8 +1995,9 @@
    * 主要用于API密钥配置
    */
   class SettingsPanel {
-    constructor(configManager) {
+    constructor(configManager, i18n) {
       this.config = configManager;
+      this.i18n = i18n;
       this.panel = null;
       this.registerMenuCommand();
     }
@@ -1697,11 +2006,11 @@
      * 注册油猴菜单命令
      */
     registerMenuCommand() {
-      GM_registerMenuCommand('⚙️ 设置面板', () => {
+      GM_registerMenuCommand(this.i18n.t('menu.settings'), () => {
         this.show();
       });
       
-      GM_registerMenuCommand('🔍 查看当前配置', () => {
+      GM_registerMenuCommand(this.i18n.t('menu.view'), () => {
         const apiKeys = this.config.get('apiKeys');
         const isCustom = (key, defaultKey) => key !== defaultKey ? '✅ 自定义' : '📦 默认';
         
@@ -1801,6 +2110,31 @@ IP自动检测: ${this.config.get('autoDetectLocation') ? '✅ 启用' : '❌ �
                   <option value="5">5个</option>
                 </select>
               </div>
+
+              <div class="cc-setting-group">
+                <label class="cc-checkbox-label">
+                  <input type="checkbox" id="cc-inline-mode" />
+                  <span><strong>一键批量显示模式</strong></span>
+                </label>
+                <small>直接在价格旁显示转换结果，无需鼠标悬停（Alt+I 切换）</small>
+              </div>
+
+              <div class="cc-setting-group" id="cc-inline-currency-group" style="margin-left: 24px; display: none;">
+                <label>
+                  <strong>内联显示货币</strong>
+                </label>
+                <select id="cc-inline-currency">
+                  <option value="CNY">CNY - 人民币</option>
+                  <option value="USD">USD - 美元</option>
+                  <option value="EUR">EUR - 欧元</option>
+                  <option value="GBP">GBP - 英镑</option>
+                  <option value="JPY">JPY - 日元</option>
+                  <option value="HKD">HKD - 港币</option>
+                  <option value="TWD">TWD - 新台币</option>
+                  <option value="KRW">KRW - 韩元</option>
+                </select>
+                <small>选择在内联模式中显示的货币</small>
+              </div>
             </div>
 
             <!-- 目标货币选择 -->
@@ -1854,22 +2188,107 @@ IP自动检测: ${this.config.get('autoDetectLocation') ? '✅ 启用' : '❌ �
               </div>
             </div>
 
+            <!-- 自定义汇率 -->
+            <div class="cc-section">
+              <h3>⚙️ 自定义汇率（离线模式）</h3>
+              
+              <div class="cc-setting-group">
+                <label class="cc-checkbox-label">
+                  <input type="checkbox" id="cc-enable-custom-rates" />
+                  <span><strong>启用自定义汇率</strong></span>
+                </label>
+                <small>开启后将使用您手动设置的汇率，不再调用API（适用于离线或固定汇率场景）</small>
+              </div>
+
+              <div id="cc-custom-rates-panel" style="display: none; margin-top: 12px; padding: 12px; background: #f9fafb; border-radius: 6px; border: 1px solid #e5e7eb;">
+                <div class="cc-info-box" style="background: #fef3c7; border-left-color: #f59e0b;">
+                  <p style="color: #92400e; font-size: 13px;">
+                    <strong>💡 提示：</strong>所有汇率以 <strong>USD（美元）</strong> 为基准货币。<br>
+                    例如：输入 CNY = 7.25 表示 1美元 = 7.25人民币
+                  </p>
+                </div>
+
+                <div style="margin-top: 12px;">
+                  <div class="cc-custom-rate-row">
+                    <label style="width: 80px; font-weight: 500;">CNY (¥)</label>
+                    <span style="margin: 0 8px;">1 USD =</span>
+                    <input type="number" id="cc-rate-cny" step="0.0001" min="0" placeholder="7.25" style="flex: 1; max-width: 120px;" />
+                    <span style="margin-left: 8px; color: #9ca3af;">CNY</span>
+                  </div>
+
+                  <div class="cc-custom-rate-row">
+                    <label style="width: 80px; font-weight: 500;">EUR (€)</label>
+                    <span style="margin: 0 8px;">1 USD =</span>
+                    <input type="number" id="cc-rate-eur" step="0.0001" min="0" placeholder="0.85" style="flex: 1; max-width: 120px;" />
+                    <span style="margin-left: 8px; color: #9ca3af;">EUR</span>
+                  </div>
+
+                  <div class="cc-custom-rate-row">
+                    <label style="width: 80px; font-weight: 500;">GBP (£)</label>
+                    <span style="margin: 0 8px;">1 USD =</span>
+                    <input type="number" id="cc-rate-gbp" step="0.0001" min="0" placeholder="0.73" style="flex: 1; max-width: 120px;" />
+                    <span style="margin-left: 8px; color: #9ca3af;">GBP</span>
+                  </div>
+
+                  <div class="cc-custom-rate-row">
+                    <label style="width: 80px; font-weight: 500;">JPY (¥)</label>
+                    <span style="margin: 0 8px;">1 USD =</span>
+                    <input type="number" id="cc-rate-jpy" step="0.01" min="0" placeholder="110.50" style="flex: 1; max-width: 120px;" />
+                    <span style="margin-left: 8px; color: #9ca3af;">JPY</span>
+                  </div>
+
+                  <div class="cc-custom-rate-row">
+                    <label style="width: 80px; font-weight: 500;">HKD (HK$)</label>
+                    <span style="margin: 0 8px;">1 USD =</span>
+                    <input type="number" id="cc-rate-hkd" step="0.0001" min="0" placeholder="7.85" style="flex: 1; max-width: 120px;" />
+                    <span style="margin-left: 8px; color: #9ca3af;">HKD</span>
+                  </div>
+
+                  <div class="cc-custom-rate-row">
+                    <label style="width: 80px; font-weight: 500;">KRW (₩)</label>
+                    <span style="margin: 0 8px;">1 USD =</span>
+                    <input type="number" id="cc-rate-krw" step="0.01" min="0" placeholder="1180.50" style="flex: 1; max-width: 120px;" />
+                    <span style="margin-left: 8px; color: #9ca3af;">KRW</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 界面语言 -->
+            <div class="cc-section">
+              <h3>🌍 ${this.i18n.t('settings.language')}</h3>
+              <div class="cc-setting-group">
+                <label>
+                  <strong>${this.i18n.t('settings.language')}</strong>
+                </label>
+                <small>${this.i18n.t('settings.languageDesc')}</small>
+                <select id="cc-language">
+                  <option value="auto">🌍 Auto Detect (自动检测)</option>
+                  <option value="zh-CN">🇨🇳 简体中文 (Chinese Simplified)</option>
+                  <option value="en">🇺🇸 English</option>
+                  <option value="ja">🇯🇵 日本語 (Japanese)</option>
+                  <option value="ko">🇰🇷 한국어 (Korean)</option>
+                </select>
+              </div>
+            </div>
+
             <!-- 快捷键说明 -->
             <div class="cc-section">
-              <h3>⌨️ 快捷键</h3>
+              <h3>⌨️ ${this.i18n.t('settings.hotkeys')}</h3>
               <div class="cc-info-box" style="background: #f0fdf4; border-left-color: #10b981;">
-                <p style="color: #065f46; margin-bottom: 12px;"><strong>可用的快捷键：</strong></p>
+                <p style="color: #065f46; margin-bottom: 12px;"><strong>${this.i18n.t('settings.hotkeysAvailable')}</strong></p>
                 <div style="color: #065f46; font-size: 13px; line-height: 1.8;">
-                  <div><kbd style="background: #d1fae5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">Alt + C</kbd> - 打开/关闭货币计算器</div>
-                  <div><kbd style="background: #d1fae5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">Alt + H</kbd> - 隐藏/显示价格标记</div>
-                  <div><kbd style="background: #d1fae5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">Esc</kbd> - 关闭所有浮动窗口</div>
+                  <div><kbd style="background: #d1fae5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">Alt + C</kbd> - ${this.i18n.t('menu.calculator')}</div>
+                  <div><kbd style="background: #d1fae5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">Alt + H</kbd> - Hide/Show Price Marks</div>
+                  <div><kbd style="background: #d1fae5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">Alt + I</kbd> - Toggle Inline Mode</div>
+                  <div><kbd style="background: #d1fae5; padding: 2px 6px; border-radius: 3px; font-family: monospace;">Esc</kbd> - Close All Popups</div>
                 </div>
               </div>
             </div>
           </div>
           <div class="cc-settings-footer">
-            <button class="cc-btn cc-btn-secondary" id="cc-cancel">取消</button>
-            <button class="cc-btn cc-btn-primary" id="cc-save">保存并刷新</button>
+            <button class="cc-btn cc-btn-secondary" id="cc-cancel">${this.i18n.t('settings.cancel')}</button>
+            <button class="cc-btn cc-btn-primary" id="cc-save">${this.i18n.t('settings.save')}</button>
           </div>
         </div>
       `;
@@ -1887,6 +2306,9 @@ IP自动检测: ${this.config.get('autoDetectLocation') ? '✅ 启用' : '❌ �
       const autoDetect = document.getElementById('cc-auto-detect');
       const excludeSource = document.getElementById('cc-exclude-source');
       const maxDisplay = document.getElementById('cc-max-display');
+      const inlineMode = document.getElementById('cc-inline-mode');
+      const inlineCurrency = document.getElementById('cc-inline-currency');
+      const inlineCurrencyGroup = document.getElementById('cc-inline-currency-group');
       
       if (autoDetect) {
         autoDetect.checked = this.config.get('autoDetectLocation');
@@ -1896,6 +2318,22 @@ IP自动检测: ${this.config.get('autoDetectLocation') ? '✅ 启用' : '❌ �
       }
       if (maxDisplay) {
         maxDisplay.value = this.config.get('maxDisplayCurrencies') || 3;
+      }
+      if (inlineMode) {
+        inlineMode.checked = this.config.get('inlineMode') || false;
+        // 控制内联货币选择的显示
+        if (inlineCurrencyGroup) {
+          inlineCurrencyGroup.style.display = inlineMode.checked ? 'block' : 'none';
+        }
+        // 添加监听器
+        inlineMode.addEventListener('change', () => {
+          if (inlineCurrencyGroup) {
+            inlineCurrencyGroup.style.display = inlineMode.checked ? 'block' : 'none';
+          }
+        });
+      }
+      if (inlineCurrency) {
+        inlineCurrency.value = this.config.get('inlineShowCurrency') || 'CNY';
       }
 
       // 加载目标货币
@@ -1921,6 +2359,50 @@ IP自动检测: ${this.config.get('autoDetectLocation') ? '✅ 启用' : '❌ �
       }
       if (currencyapiInput && apiKeys.currencyapi) {
         currencyapiInput.value = apiKeys.currencyapi;
+      }
+
+      // 加载自定义汇率设置
+      const enableCustomRates = document.getElementById('cc-enable-custom-rates');
+      const customRatesPanel = document.getElementById('cc-custom-rates-panel');
+      
+      if (enableCustomRates) {
+        enableCustomRates.checked = this.config.get('enableCustomRates') || false;
+        
+        // 控制自定义汇率面板的显示
+        if (customRatesPanel) {
+          customRatesPanel.style.display = enableCustomRates.checked ? 'block' : 'none';
+        }
+        
+        // 添加监听器
+        enableCustomRates.addEventListener('change', () => {
+          if (customRatesPanel) {
+            customRatesPanel.style.display = enableCustomRates.checked ? 'block' : 'none';
+          }
+        });
+      }
+
+      // 加载自定义汇率值
+      const customRates = this.config.get('customRates') || {};
+      const rateInputs = {
+        'CNY': document.getElementById('cc-rate-cny'),
+        'EUR': document.getElementById('cc-rate-eur'),
+        'GBP': document.getElementById('cc-rate-gbp'),
+        'JPY': document.getElementById('cc-rate-jpy'),
+        'HKD': document.getElementById('cc-rate-hkd'),
+        'KRW': document.getElementById('cc-rate-krw')
+      };
+
+      for (const [currency, input] of Object.entries(rateInputs)) {
+        if (input && customRates[currency]) {
+          input.value = customRates[currency];
+        }
+      }
+
+      // 加载语言设置
+      const languageSelect = document.getElementById('cc-language');
+      if (languageSelect) {
+        const savedLang = this.config.get('language') || 'auto';
+        languageSelect.value = savedLang;
       }
     }
 
@@ -1956,6 +2438,8 @@ IP自动检测: ${this.config.get('autoDetectLocation') ? '✅ 启用' : '❌ �
       const autoDetect = document.getElementById('cc-auto-detect').checked;
       const excludeSource = document.getElementById('cc-exclude-source').checked;
       const maxDisplay = parseInt(document.getElementById('cc-max-display').value);
+      const inlineMode = document.getElementById('cc-inline-mode').checked;
+      const inlineCurrency = document.getElementById('cc-inline-currency').value;
 
       // 获取选中的货币
       const selectedCurrencies = Array.from(document.querySelectorAll('input[name="cc-currency"]:checked'))
@@ -1963,11 +2447,11 @@ IP自动检测: ${this.config.get('autoDetectLocation') ? '✅ 启用' : '❌ �
 
       // 验证货币选择
       if (selectedCurrencies.length < 2) {
-        alert('❌ 请至少选择2个目标货币！');
+        alert(this.i18n.t('messages.minCurrency'));
         return;
       }
       if (selectedCurrencies.length > 5) {
-        alert('❌ 最多只能选择5个目标货币！');
+        alert(this.i18n.t('messages.maxCurrency'));
         return;
       }
 
@@ -1981,11 +2465,54 @@ IP自动检测: ${this.config.get('autoDetectLocation') ? '✅ 启用' : '❌ �
       newApiKeys.fixer = fixerKey || DEFAULT_CONFIG.apiKeys.fixer;
       newApiKeys.currencyapi = currencyapiKey || DEFAULT_CONFIG.apiKeys.currencyapi;
 
+      // 获取自定义汇率设置
+      const enableCustomRates = document.getElementById('cc-enable-custom-rates').checked;
+      const customRates = {};
+      
+      if (enableCustomRates) {
+        // 读取所有汇率输入
+        const rateInputs = {
+          'CNY': document.getElementById('cc-rate-cny'),
+          'EUR': document.getElementById('cc-rate-eur'),
+          'GBP': document.getElementById('cc-rate-gbp'),
+          'JPY': document.getElementById('cc-rate-jpy'),
+          'HKD': document.getElementById('cc-rate-hkd'),
+          'KRW': document.getElementById('cc-rate-krw')
+        };
+
+        let hasAnyRate = false;
+        for (const [currency, input] of Object.entries(rateInputs)) {
+          if (input && input.value) {
+            const rate = parseFloat(input.value);
+            if (isNaN(rate) || rate <= 0) {
+              alert(`${this.i18n.t('messages.invalidRate')}: ${currency} = ${input.value}\n${this.i18n.t('messages.invalidRateDesc')}`);
+              return;
+            }
+            customRates[currency] = rate;
+            hasAnyRate = true;
+          }
+        }
+
+        // 如果启用了自定义汇率但没有设置任何值
+        if (!hasAnyRate) {
+          alert(this.i18n.t('messages.minCustomRate'));
+          return;
+        }
+      }
+
+      // 获取语言设置
+      const language = document.getElementById('cc-language').value;
+
       // 保存所有配置
       const newConfig = {
+        language: language,
         autoDetectLocation: autoDetect,
         excludeSourceCurrency: excludeSource,
         maxDisplayCurrencies: maxDisplay,
+        inlineMode: inlineMode,
+        inlineShowCurrency: inlineCurrency,
+        enableCustomRates: enableCustomRates,
+        customRates: customRates,
         targetCurrencies: selectedCurrencies,
         apiKeys: newApiKeys
       };
@@ -1997,7 +2524,7 @@ IP自动检测: ${this.config.get('autoDetectLocation') ? '✅ 启用' : '❌ �
 
       this.config.save(newConfig);
 
-      alert('✅ 配置已保存！\n\n页面即将刷新以应用新设置。');
+      alert(this.i18n.t('messages.saved'));
       this.hide();
       
       // 1秒后自动刷新
@@ -2155,6 +2682,27 @@ IP自动检测: ${this.config.get('autoDetectLocation') ? '✅ 启用' : '❌ �
           font-weight: 600;
           margin-bottom: 8px;
           color: #374151;
+        }
+
+        .cc-custom-rate-row {
+          display: flex;
+          align-items: center;
+          margin-bottom: 10px;
+          font-size: 14px;
+        }
+
+        .cc-custom-rate-row input[type="number"] {
+          padding: 6px 10px;
+          border: 1px solid #d1d5db;
+          border-radius: 4px;
+          font-size: 14px;
+          text-align: right;
+        }
+
+        .cc-custom-rate-row input[type="number"]:focus {
+          outline: none;
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
         .cc-setting-group label a {
@@ -2456,9 +3004,10 @@ IP自动检测: ${this.config.get('autoDetectLocation') ? '✅ 启用' : '❌ �
    * 提供独立的浮动计算器窗口
    */
   class CalculatorPanel {
-    constructor(rateManager, configManager) {
+    constructor(rateManager, configManager, i18n) {
       this.rateManager = rateManager;
       this.config = configManager;
+      this.i18n = i18n;
       this.panel = null;
       this.isDragging = false;
       this.dragOffset = { x: 0, y: 0 };
@@ -2744,7 +3293,7 @@ IP自动检测: ${this.config.get('autoDetectLocation') ? '✅ 启用' : '❌ �
       GM_addStyle(`
         .cc-calculator-panel {
           position: fixed;
-          width: 300px;
+          width: auto;
           background: white;
           border: 1px solid #e5e7eb;
           border-radius: 8px;
@@ -2799,7 +3348,6 @@ IP自动检测: ${this.config.get('autoDetectLocation') ? '✅ 启用' : '❌ �
         .cc-calc-input-group {
           display: flex;
           gap: 8px;
-          margin-bottom: 12px;
         }
 
         .cc-calc-input-group input {
@@ -2843,7 +3391,7 @@ IP自动检测: ${this.config.get('autoDetectLocation') ? '✅ 启用' : '❌ �
         .cc-calc-swap {
           display: flex;
           justify-content: center;
-          margin: -6px 0;
+          margin: 10px 0;
         }
 
         .cc-calc-swap button {
@@ -2940,9 +3488,11 @@ IP自动检测: ${this.config.get('autoDetectLocation') ? '✅ 启用' : '❌ �
    * 处理全局快捷键
    */
   class KeyboardManager {
-    constructor(calculatorPanel, tooltipManager) {
+    constructor(calculatorPanel, tooltipManager, configManager, detector) {
       this.calculator = calculatorPanel;
       this.tooltipManager = tooltipManager;
+      this.config = configManager;
+      this.detector = detector;
       this.init();
     }
 
@@ -2972,9 +3522,16 @@ IP自动检测: ${this.config.get('autoDetectLocation') ? '✅ 启用' : '❌ �
           this.togglePriceHighlights();
           console.log('[CC] 快捷键: Alt+H - 切换价格标记');
         }
+
+        // Alt + I: 切换内联模式
+        if (e.altKey && e.key.toLowerCase() === 'i') {
+          e.preventDefault();
+          this.toggleInlineMode();
+          console.log('[CC] 快捷键: Alt+I - 切换内联模式');
+        }
       });
 
-      console.log('[CC] 快捷键已启用: Alt+C (计算器), Alt+H (切换标记), Esc (关闭)');
+      console.log('[CC] 快捷键已启用: Alt+C (计算器), Alt+H (切换标记), Alt+I (内联模式), Esc (关闭)');
     }
 
     /**
@@ -2996,6 +3553,29 @@ IP自动检测: ${this.config.get('autoDetectLocation') ? '✅ 启用' : '❌ �
           el.style.textDecoration = 'none'; // 隐藏下划线
         }
       });
+    }
+
+    /**
+     * 切换内联模式
+     */
+    toggleInlineMode() {
+      const currentMode = this.config.get('inlineMode');
+      const newMode = !currentMode;
+      
+      // 保存新配置
+      this.config.set('inlineMode', newMode);
+      
+      if (newMode) {
+        // 开启内联模式：为所有已检测的价格添加内联显示
+        this.detector.detectedElements.forEach((priceData, element) => {
+          this.detector.addInlineConversion(element, priceData);
+        });
+        console.log('[CC] ✅ 内联模式已开启');
+      } else {
+        // 关闭内联模式：移除所有内联显示
+        this.detector.removeAllInlineConversions();
+        console.log('[CC] ❌ 内联模式已关闭');
+      }
     }
   }
 
@@ -3036,13 +3616,17 @@ IP自动检测: ${this.config.get('autoDetectLocation') ? '✅ 启用' : '❌ �
    * 主初始化函数
    */
   function init() {
-    console.log('%c💱 Currency Converter v1.3.0 Loaded', 
+    console.log('%c💱 Currency Converter v1.4.0 Loaded', 
       'color: #667eea; font-size: 14px; font-weight: bold;');
 
     try {
       // 1. 实例化配置管理器
       const configManager = new ConfigManager();
       console.log('[CC] ConfigManager initialized');
+
+      // 1.5. 实例化国际化管理器
+      const i18n = new I18nManager(configManager);
+      console.log(`[CC] I18nManager initialized (${i18n.getCurrentLanguage()})`);
 
       // 2. 实例化汇率管理器
       const rateManager = new ExchangeRateManager(configManager);
@@ -3062,23 +3646,46 @@ IP自动检测: ${this.config.get('autoDetectLocation') ? '✅ 启用' : '❌ �
       console.log('[CC] CurrencyDetector initialized');
 
       // 5. 实例化工具提示管理器
-      const tooltipManager = new TooltipManager(rateManager, configManager);
+      const tooltipManager = new TooltipManager(rateManager, configManager, i18n);
       console.log('[CC] TooltipManager initialized');
 
+      // 5.1. 连接detector和rateManager以支持内联模式
+      detector.updateInlineConversion = async function(inlineElement, priceData, toCurrency) {
+        try {
+          await rateManager.getRates('USD');
+          const converted = rateManager.convert(priceData.amount, priceData.currency, toCurrency);
+          
+          // 格式化显示
+          const formattedAmount = new Intl.NumberFormat('zh-CN', {
+            style: 'currency',
+            currency: toCurrency,
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          }).format(converted);
+          
+          inlineElement.textContent = ` (≈${formattedAmount})`;
+          inlineElement.dataset.loading = 'false';
+        } catch (error) {
+          inlineElement.textContent = '';
+          inlineElement.style.display = 'none';
+          console.warn('[CC] Inline conversion failed:', error);
+        }
+      };
+
       // 5.5. 实例化设置面板
-      const settingsPanel = new SettingsPanel(configManager);
+      const settingsPanel = new SettingsPanel(configManager, i18n);
       console.log('[CC] SettingsPanel initialized');
 
       // 5.6. 实例化货币计算器
-      const calculator = new CalculatorPanel(rateManager, configManager);
+      const calculator = new CalculatorPanel(rateManager, configManager, i18n);
       console.log('[CC] CalculatorPanel initialized');
 
       // 5.7. 实例化快捷键管理器
-      const keyboardManager = new KeyboardManager(calculator, tooltipManager);
+      const keyboardManager = new KeyboardManager(calculator, tooltipManager, configManager, detector);
       console.log('[CC] KeyboardManager initialized');
 
       // 5.8. 添加计算器菜单命令
-      GM_registerMenuCommand('💱 货币计算器 (Alt+C)', () => {
+      GM_registerMenuCommand(i18n.t('menu.calculator'), () => {
         calculator.toggle();
       });
 
