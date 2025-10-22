@@ -2,7 +2,7 @@
 // @name         ✨✨✨全能货币转换器 - Universal Currency Converter✨✨✨
 // @name:en      Universal Currency Converter
 // @namespace    https://greasyfork.org/users/currency-converter
-// @version      1.1.0
+// @version      1.2.0
 // @description  ✨✨✨智能识别网页价格，鼠标悬停即可查看实时汇率转换。支持15+主流货币，使用免费API，数据缓存，性能优化。
 // @description:en  Intelligently detect prices on web pages and view real-time currency conversions on hover. Supports 15+ major currencies with free APIs, data caching, and performance optimization.
 // @author       FronNian
@@ -16,6 +16,7 @@
 // @connect      v6.exchangerate-api.com
 // @connect      api.fixer.io
 // @connect      api.currencyapi.com
+// @connect      ipapi.co
 // @license      GPL-3.0-or-later
 // @icon         data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="0.9em" font-size="90">💱</text></svg>
 // @run-at       document-idle
@@ -61,8 +62,14 @@
    * @type {Object}
    */
   const DEFAULT_CONFIG = {
-    // 目标货币列表（最多3个）
-    targetCurrencies: ['CNY', 'USD', 'EUR'],
+    // 目标货币列表（最多5个，可在设置中修改）
+    targetCurrencies: ['CNY', 'USD', 'EUR', 'GBP', 'JPY'],
+    
+    // 智能货币显示
+    autoDetectLocation: true,  // 根据IP自动检测用户所在国家
+    excludeSourceCurrency: true, // 排除原货币（如价格是USD就不显示USD转换）
+    userCountryCurrency: null,  // 用户所在国家货币（自动检测后保存）
+    maxDisplayCurrencies: 3,    // 最多显示的货币数量
     
     // API密钥配置
     apiKeys: {
@@ -321,6 +328,119 @@
       return parts.join('.');
     }
   };
+
+  /* ==================== 地理位置检测模块 ==================== */
+  
+  /**
+   * 地理位置检测器类
+   * 根据IP地址检测用户所在国家，并映射到对应货币
+   */
+  class GeoLocationDetector {
+    constructor(configManager) {
+      this.config = configManager;
+      this.countryToCurrency = {
+        'US': 'USD', 'CN': 'CNY', 'GB': 'GBP', 'JP': 'JPY', 'EU': 'EUR',
+        'DE': 'EUR', 'FR': 'EUR', 'IT': 'EUR', 'ES': 'EUR', 'NL': 'EUR',
+        'HK': 'HKD', 'TW': 'TWD', 'KR': 'KRW', 'AU': 'AUD', 'CA': 'CAD',
+        'SG': 'SGD', 'CH': 'CHF', 'RU': 'RUB', 'IN': 'INR', 'BR': 'BRL',
+        'MX': 'MXN', 'ID': 'IDR', 'TR': 'TRY', 'SA': 'SAR', 'ZA': 'ZAR'
+      };
+    }
+
+    /**
+     * 检测用户所在国家并返回对应货币
+     * @returns {Promise<string|null>} 国家对应的货币代码
+     */
+    async detectUserCurrency() {
+      // 先检查是否已缓存
+      const cached = this.config.get('userCountryCurrency');
+      if (cached) {
+        console.log(`[CC] 使用缓存的用户国家货币: ${cached}`);
+        return cached;
+      }
+
+      // 如果用户禁用了自动检测
+      if (!this.config.get('autoDetectLocation')) {
+        console.log('[CC] 自动检测已禁用');
+        return null;
+      }
+
+      try {
+        console.log('[CC] 正在检测用户地理位置...');
+        
+        // 使用免费IP地理位置API（ipapi.co）
+        const countryCode = await this.fetchCountryCode();
+        
+        if (!countryCode) {
+          console.log('[CC] 无法获取国家代码');
+          return null;
+        }
+
+        const currency = this.countryToCurrency[countryCode] || null;
+        
+        if (currency) {
+          console.log(`[CC] 🌍 检测到用户位于: ${countryCode}, 货币: ${currency}`);
+          // 保存到配置
+          this.config.save({ userCountryCurrency: currency });
+          return currency;
+        } else {
+          console.log(`[CC] 国家代码 ${countryCode} 未映射到货币`);
+          return null;
+        }
+      } catch (error) {
+        console.error('[CC] 地理位置检测失败:', error);
+        return null;
+      }
+    }
+
+    /**
+     * 调用IP API获取国家代码
+     * @returns {Promise<string|null>}
+     */
+    async fetchCountryCode() {
+      return new Promise((resolve) => {
+        GM_xmlhttpRequest({
+          method: 'GET',
+          url: 'https://ipapi.co/country/',
+          timeout: 5000,
+          onload: (response) => {
+            if (response.status === 200) {
+              const countryCode = response.responseText.trim().toUpperCase();
+              resolve(countryCode);
+            } else {
+              console.warn('[CC] IP API返回错误:', response.status);
+              resolve(null);
+            }
+          },
+          onerror: (error) => {
+            console.error('[CC] IP API请求失败:', error);
+            resolve(null);
+          },
+          ontimeout: () => {
+            console.warn('[CC] IP API请求超时');
+            resolve(null);
+          }
+        });
+      });
+    }
+
+    /**
+     * 手动设置用户国家货币
+     * @param {string} currency - 货币代码
+     */
+    setUserCurrency(currency) {
+      this.config.save({ userCountryCurrency: currency });
+      console.log(`[CC] 用户国家货币已设置为: ${currency}`);
+    }
+
+    /**
+     * 清除缓存的国家货币
+     */
+    clearCache() {
+      this.config.save({ userCountryCurrency: null });
+      console.log('[CC] 已清除用户国家货币缓存');
+    }
+  }
 
   /* ==================== 汇率数据管理器 ==================== */
   
@@ -1038,8 +1158,8 @@
         return;
       }
 
-      // 获取目标货币列表
-      const targetCurrencies = this.config.get('targetCurrencies') || ['CNY', 'USD', 'EUR'];
+      // 获取智能排序的目标货币列表
+      const targetCurrencies = this.getSmartTargetCurrencies(fromCurrency);
       
       // 计算转换结果
       const conversions = targetCurrencies.map(toCurrency => {
@@ -1230,6 +1350,40 @@
         this.currentTooltip.remove();
         this.currentTooltip = null;
       }
+    }
+
+    /**
+     * 获取智能排序的目标货币列表
+     * @param {string} sourceCurrency - 原货币代码
+     * @returns {Array<string>} 目标货币列表
+     */
+    getSmartTargetCurrencies(sourceCurrency) {
+      // 获取所有配置的目标货币
+      let targetCurrencies = this.config.get('targetCurrencies') || ['CNY', 'USD', 'EUR', 'GBP', 'JPY'];
+      
+      // 是否排除原货币
+      if (this.config.get('excludeSourceCurrency')) {
+        targetCurrencies = targetCurrencies.filter(c => c !== sourceCurrency);
+      }
+      
+      // 获取用户国家货币（优先显示）
+      const userCountryCurrency = this.config.get('userCountryCurrency');
+      
+      // 智能排序：用户国家货币 > 其他配置货币
+      if (userCountryCurrency && userCountryCurrency !== sourceCurrency) {
+        // 移除用户国家货币（如果在列表中）
+        targetCurrencies = targetCurrencies.filter(c => c !== userCountryCurrency);
+        // 添加到第一位
+        targetCurrencies.unshift(userCountryCurrency);
+      }
+      
+      // 限制显示数量
+      const maxDisplay = this.config.get('maxDisplayCurrencies') || 3;
+      targetCurrencies = targetCurrencies.slice(0, maxDisplay);
+      
+      console.log(`[CC] 目标货币: ${targetCurrencies.join(', ')} (原货币: ${sourceCurrency})`);
+      
+      return targetCurrencies;
     }
 
     /**
@@ -1445,7 +1599,7 @@
      * 注册油猴菜单命令
      */
     registerMenuCommand() {
-      GM_registerMenuCommand('⚙️ API密钥配置', () => {
+      GM_registerMenuCommand('⚙️ 设置面板', () => {
         this.show();
       });
       
@@ -1454,8 +1608,7 @@
         const isCustom = (key, defaultKey) => key !== defaultKey ? '✅ 自定义' : '📦 默认';
         
         const info = `
-当前API密钥配置：
-
+【API密钥配置】
 ExchangeRate-API: 
   ${apiKeys.exchangeRateApi.substring(0, 8)}****${apiKeys.exchangeRateApi.substring(apiKeys.exchangeRateApi.length - 4)}
   ${isCustom(apiKeys.exchangeRateApi, DEFAULT_CONFIG.apiKeys.exchangeRateApi)}
@@ -1468,15 +1621,19 @@ CurrencyAPI:
   ${apiKeys.currencyapi.substring(0, 8)}****${apiKeys.currencyapi.substring(apiKeys.currencyapi.length - 4)}
   ${isCustom(apiKeys.currencyapi, DEFAULT_CONFIG.apiKeys.currencyapi)}
 
+【显示设置】
 目标货币: ${this.config.get('targetCurrencies').join(', ')}
-缓存时间: ${this.config.get('cacheExpiry') / 1000}秒
+最多显示: ${this.config.get('maxDisplayCurrencies')}个
+IP自动检测: ${this.config.get('autoDetectLocation') ? '✅ 启用' : '❌ 禁用'}
+排除原货币: ${this.config.get('excludeSourceCurrency') ? '✅ 启用' : '❌ 禁用'}
+用户国家货币: ${this.config.get('userCountryCurrency') || '未检测'}
         `.trim();
         
         alert(info);
       });
       
       GM_registerMenuCommand('🔄 重置配置', () => {
-        if (confirm('确定要重置所有配置吗？（将恢复默认API密钥）')) {
+        if (confirm('确定要重置所有配置吗？（将恢复默认设置）')) {
           this.config.reset();
           alert('配置已重置！刷新页面后生效。');
           location.reload();
@@ -1503,65 +1660,105 @@ CurrencyAPI:
      * 创建设置面板
      */
     create() {
+      const allCurrencies = ['USD', 'CNY', 'EUR', 'GBP', 'JPY', 'HKD', 'TWD', 'KRW', 'AUD', 'CAD', 'SGD', 'CHF', 'RUB', 'INR', 'BRL'];
+      
       const panel = document.createElement('div');
       panel.className = 'cc-settings-panel';
       panel.innerHTML = `
         <div class="cc-settings-overlay"></div>
         <div class="cc-settings-modal">
           <div class="cc-settings-header">
-            <h2>💱 API密钥配置</h2>
+            <h2>⚙️ 货币转换器设置</h2>
             <button class="cc-close-btn" id="cc-close">&times;</button>
           </div>
           <div class="cc-settings-body">
-            <div class="cc-info-box">
-              <p>📝 如果默认API配额用完，可以免费申请自己的API密钥：</p>
-            </div>
-            
-            <div class="cc-setting-group">
-              <label>
-                <strong>ExchangeRate-API</strong> 
-                <a href="https://www.exchangerate-api.com/" target="_blank">获取密钥 →</a>
-              </label>
-              <small>免费额度：1,500请求/月</small>
-              <input type="text" id="cc-key-exchangerate" placeholder="输入API密钥（可选）" />
+            <!-- 智能显示设置 -->
+            <div class="cc-section">
+              <h3>🎯 智能显示</h3>
+              
+              <div class="cc-setting-group">
+                <label class="cc-checkbox-label">
+                  <input type="checkbox" id="cc-auto-detect" />
+                  <span><strong>根据IP自动检测所在国家</strong></span>
+                </label>
+                <small>启用后，优先显示你所在国家的货币（首次加载时检测）</small>
+              </div>
+
+              <div class="cc-setting-group">
+                <label class="cc-checkbox-label">
+                  <input type="checkbox" id="cc-exclude-source" />
+                  <span><strong>排除原货币</strong></span>
+                </label>
+                <small>转换结果中不显示原价格的货币（例如：美元价格不再显示美元转换）</small>
+              </div>
+
+              <div class="cc-setting-group">
+                <label>
+                  <strong>最多显示货币数量</strong>
+                </label>
+                <select id="cc-max-display">
+                  <option value="2">2个</option>
+                  <option value="3">3个</option>
+                  <option value="4">4个</option>
+                  <option value="5">5个</option>
+                </select>
+              </div>
             </div>
 
-            <div class="cc-setting-group">
-              <label>
-                <strong>Fixer.io</strong>
-                <a href="https://fixer.io/" target="_blank">获取密钥 →</a>
-              </label>
-              <small>免费额度：100请求/月</small>
-              <input type="text" id="cc-key-fixer" placeholder="输入API密钥（可选）" />
+            <!-- 目标货币选择 -->
+            <div class="cc-section">
+              <h3>💰 目标货币</h3>
+              <small style="display: block; margin-bottom: 10px; color: #6b7280;">
+                选择要显示的货币（至少2个，最多5个）
+              </small>
+              <div class="cc-currency-grid" id="cc-currency-checkboxes">
+                ${allCurrencies.map(cur => `
+                  <label class="cc-currency-option">
+                    <input type="checkbox" name="cc-currency" value="${cur}" />
+                    <span>${cur}</span>
+                  </label>
+                `).join('')}
+              </div>
             </div>
 
-            <div class="cc-setting-group">
-              <label>
-                <strong>CurrencyAPI</strong>
-                <a href="https://currencyapi.com/" target="_blank">获取密钥 →</a>
-              </label>
-              <small>免费额度：300请求/月</small>
-              <input type="text" id="cc-key-currencyapi" placeholder="输入API密钥（可选）" />
-            </div>
+            <!-- API密钥配置 -->
+            <div class="cc-section">
+              <h3>🔑 API密钥（可选）</h3>
+              <div class="cc-info-box">
+                <p>📝 如果默认API配额用完，可以免费申请自己的API密钥：</p>
+              </div>
+              
+              <div class="cc-setting-group">
+                <label>
+                  <strong>ExchangeRate-API</strong> 
+                  <a href="https://www.exchangerate-api.com/" target="_blank">获取密钥 →</a>
+                </label>
+                <small>免费额度：1,500请求/月</small>
+                <input type="text" id="cc-key-exchangerate" placeholder="留空使用默认密钥" />
+              </div>
 
-            <div class="cc-info-box cc-tip">
-              <p>💡 <strong>提示：</strong></p>
-              <ul>
-                <li>留空则使用默认密钥</li>
-                <li>建议至少配置一个API密钥作为备用</li>
-                <li>保存后需要刷新页面生效</li>
-                <li>打开浏览器控制台(F12)可查看密钥使用情况</li>
-              </ul>
-            </div>
-            
-            <div class="cc-info-box" style="background: #f0fdf4; border-left-color: #10b981;">
-              <p style="color: #065f46;">🔍 <strong>查看当前配置：</strong></p>
-              <p style="color: #065f46; font-size: 13px;">保存后可通过油猴菜单 → "🔍 查看当前配置" 查看已保存的密钥（部分遮盖）</p>
+              <div class="cc-setting-group">
+                <label>
+                  <strong>Fixer.io</strong>
+                  <a href="https://fixer.io/" target="_blank">获取密钥 →</a>
+                </label>
+                <small>免费额度：100请求/月</small>
+                <input type="text" id="cc-key-fixer" placeholder="留空使用默认密钥" />
+              </div>
+
+              <div class="cc-setting-group">
+                <label>
+                  <strong>CurrencyAPI</strong>
+                  <a href="https://currencyapi.com/" target="_blank">获取密钥 →</a>
+                </label>
+                <small>免费额度：300请求/月</small>
+                <input type="text" id="cc-key-currencyapi" placeholder="留空使用默认密钥" />
+              </div>
             </div>
           </div>
           <div class="cc-settings-footer">
             <button class="cc-btn cc-btn-secondary" id="cc-cancel">取消</button>
-            <button class="cc-btn cc-btn-primary" id="cc-save">保存配置</button>
+            <button class="cc-btn cc-btn-primary" id="cc-save">保存并刷新</button>
           </div>
         </div>
       `;
@@ -1575,6 +1772,31 @@ CurrencyAPI:
      * 加载当前设置
      */
     loadCurrentSettings() {
+      // 加载智能显示设置
+      const autoDetect = document.getElementById('cc-auto-detect');
+      const excludeSource = document.getElementById('cc-exclude-source');
+      const maxDisplay = document.getElementById('cc-max-display');
+      
+      if (autoDetect) {
+        autoDetect.checked = this.config.get('autoDetectLocation');
+      }
+      if (excludeSource) {
+        excludeSource.checked = this.config.get('excludeSourceCurrency');
+      }
+      if (maxDisplay) {
+        maxDisplay.value = this.config.get('maxDisplayCurrencies') || 3;
+      }
+
+      // 加载目标货币
+      const targetCurrencies = this.config.get('targetCurrencies') || ['CNY', 'USD', 'EUR', 'GBP', 'JPY'];
+      const currencyCheckboxes = document.querySelectorAll('input[name="cc-currency"]');
+      currencyCheckboxes.forEach(checkbox => {
+        if (targetCurrencies.includes(checkbox.value)) {
+          checkbox.checked = true;
+        }
+      });
+
+      // 加载API密钥
       const apiKeys = this.config.get('apiKeys');
       const exchangeInput = document.getElementById('cc-key-exchangerate');
       const fixerInput = document.getElementById('cc-key-fixer');
@@ -1619,25 +1841,55 @@ CurrencyAPI:
      * 保存设置
      */
     saveSettings() {
+      // 获取智能显示设置
+      const autoDetect = document.getElementById('cc-auto-detect').checked;
+      const excludeSource = document.getElementById('cc-exclude-source').checked;
+      const maxDisplay = parseInt(document.getElementById('cc-max-display').value);
+
+      // 获取选中的货币
+      const selectedCurrencies = Array.from(document.querySelectorAll('input[name="cc-currency"]:checked'))
+        .map(cb => cb.value);
+
+      // 验证货币选择
+      if (selectedCurrencies.length < 2) {
+        alert('❌ 请至少选择2个目标货币！');
+        return;
+      }
+      if (selectedCurrencies.length > 5) {
+        alert('❌ 最多只能选择5个目标货币！');
+        return;
+      }
+
+      // 获取API密钥
       const exchangeKey = document.getElementById('cc-key-exchangerate').value.trim();
       const fixerKey = document.getElementById('cc-key-fixer').value.trim();
       const currencyapiKey = document.getElementById('cc-key-currencyapi').value.trim();
 
       const newApiKeys = {};
-      
-      // 使用用户提供的密钥，如果为空则使用默认密钥
       newApiKeys.exchangeRateApi = exchangeKey || DEFAULT_CONFIG.apiKeys.exchangeRateApi;
       newApiKeys.fixer = fixerKey || DEFAULT_CONFIG.apiKeys.fixer;
       newApiKeys.currencyapi = currencyapiKey || DEFAULT_CONFIG.apiKeys.currencyapi;
 
-      this.config.save({
+      // 保存所有配置
+      const newConfig = {
+        autoDetectLocation: autoDetect,
+        excludeSourceCurrency: excludeSource,
+        maxDisplayCurrencies: maxDisplay,
+        targetCurrencies: selectedCurrencies,
         apiKeys: newApiKeys
-      });
+      };
 
-      alert('✅ API密钥已保存！\n\n刷新页面后生效。');
+      // 如果禁用了自动检测，清除缓存的国家货币
+      if (!autoDetect) {
+        newConfig.userCountryCurrency = null;
+      }
+
+      this.config.save(newConfig);
+
+      alert('✅ 配置已保存！\n\n页面即将刷新以应用新设置。');
       this.hide();
       
-      // 3秒后自动刷新
+      // 1秒后自动刷新
       setTimeout(() => {
         location.reload();
       }, 1000);
@@ -1710,20 +1962,21 @@ CurrencyAPI:
           display: flex;
           justify-content: space-between;
           align-items: center;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
+          background: white;
+          color: #1f2937;
         }
 
         .cc-settings-header h2 {
           margin: 0;
           font-size: 20px;
           font-weight: 600;
+          color: #1f2937;
         }
 
         .cc-close-btn {
           background: none;
           border: none;
-          color: white;
+          color: #6b7280;
           font-size: 32px;
           cursor: pointer;
           padding: 0;
@@ -1733,11 +1986,12 @@ CurrencyAPI:
           align-items: center;
           justify-content: center;
           border-radius: 4px;
-          transition: background 0.2s;
+          transition: all 0.2s;
         }
 
         .cc-close-btn:hover {
-          background: rgba(255, 255, 255, 0.2);
+          background: #f3f4f6;
+          color: #1f2937;
         }
 
         .cc-settings-body {
@@ -1827,6 +2081,107 @@ CurrencyAPI:
           box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
+        .cc-setting-group select {
+          width: 100%;
+          padding: 10px 12px;
+          border: 1px solid #d1d5db;
+          border-radius: 6px;
+          font-size: 14px;
+          background: white;
+          cursor: pointer;
+          transition: border-color 0.2s;
+        }
+
+        .cc-setting-group select:focus {
+          outline: none;
+          border-color: #667eea;
+          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .cc-section {
+          margin-bottom: 30px;
+          padding-bottom: 24px;
+          border-bottom: 1px solid #e5e7eb;
+        }
+
+        .cc-section:last-child {
+          border-bottom: none;
+        }
+
+        .cc-section h3 {
+          margin: 0 0 16px 0;
+          font-size: 16px;
+          font-weight: 600;
+          color: #1f2937;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .cc-checkbox-label {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          cursor: pointer;
+          margin-bottom: 8px;
+        }
+
+        .cc-checkbox-label input[type="checkbox"] {
+          width: 18px;
+          height: 18px;
+          cursor: pointer;
+          accent-color: #667eea;
+        }
+
+        .cc-currency-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+          gap: 10px;
+          margin-top: 10px;
+        }
+
+        .cc-currency-option {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 10px;
+          border: 2px solid #e5e7eb;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.2s;
+          background: white;
+        }
+
+        .cc-currency-option:hover {
+          border-color: #667eea;
+          background: #f5f7ff;
+        }
+
+        .cc-currency-option input[type="checkbox"] {
+          display: none;
+        }
+
+        .cc-currency-option input[type="checkbox"]:checked + span {
+          color: white;
+        }
+
+        .cc-currency-option:has(input:checked) {
+          background: #3b82f6;
+          border-color: #3b82f6;
+          box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+        }
+
+        .cc-currency-option span {
+          font-weight: 600;
+          font-size: 14px;
+          color: #374151;
+          transition: color 0.2s;
+        }
+
+        .cc-currency-option:has(input:checked) span {
+          color: white;
+        }
+
         .cc-settings-footer {
           padding: 16px 24px;
           border-top: 1px solid #e5e7eb;
@@ -1847,13 +2202,19 @@ CurrencyAPI:
         }
 
         .cc-btn-primary {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: #3b82f6;
           color: white;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .cc-btn-primary:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+          background: #2563eb;
+          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .cc-btn-primary:active {
+          background: #1d4ed8;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
 
         .cc-btn-secondary {
@@ -1863,6 +2224,102 @@ CurrencyAPI:
 
         .cc-btn-secondary:hover {
           background: #d1d5db;
+        }
+
+        /* 暗色模式支持 */
+        @media (prefers-color-scheme: dark) {
+          .cc-settings-modal {
+            background: #1f2937;
+            color: #f3f4f6;
+          }
+
+          .cc-settings-header {
+            background: #1f2937;
+            border-bottom-color: #374151;
+          }
+
+          .cc-settings-header h2 {
+            color: #f3f4f6;
+          }
+
+          .cc-close-btn {
+            color: #9ca3af;
+          }
+
+          .cc-close-btn:hover {
+            background: #374151;
+            color: #f3f4f6;
+          }
+
+          .cc-settings-body {
+            background: #1f2937;
+          }
+
+          .cc-section {
+            border-bottom-color: #374151;
+          }
+
+          .cc-section h3 {
+            color: #f3f4f6;
+          }
+
+          .cc-info-box {
+            background: #1e3a5f;
+            border-left-color: #3b82f6;
+          }
+
+          .cc-info-box p {
+            color: #93c5fd;
+          }
+
+          .cc-setting-group label {
+            color: #f3f4f6;
+          }
+
+          .cc-setting-group small {
+            color: #9ca3af;
+          }
+
+          .cc-setting-group input,
+          .cc-setting-group select {
+            background: #374151;
+            border-color: #4b5563;
+            color: #f3f4f6;
+          }
+
+          .cc-setting-group input:focus,
+          .cc-setting-group select:focus {
+            border-color: #3b82f6;
+            background: #374151;
+          }
+
+          .cc-currency-option {
+            background: #374151;
+            border-color: #4b5563;
+          }
+
+          .cc-currency-option:hover {
+            border-color: #3b82f6;
+            background: #2d3748;
+          }
+
+          .cc-currency-option span {
+            color: #f3f4f6;
+          }
+
+          .cc-btn-secondary {
+            background: #374151;
+            color: #f3f4f6;
+          }
+
+          .cc-btn-secondary:hover {
+            background: #4b5563;
+          }
+
+          .cc-settings-footer {
+            background: #111827;
+            border-top-color: #374151;
+          }
         }
 
         @media (max-width: 640px) {
@@ -1918,7 +2375,7 @@ CurrencyAPI:
    * 主初始化函数
    */
   function init() {
-    console.log('%c💱 Currency Converter v1.0.0 Loaded', 
+    console.log('%c💱 Currency Converter v1.2.0 Loaded', 
       'color: #667eea; font-size: 14px; font-weight: bold;');
 
     try {
@@ -1930,19 +2387,28 @@ CurrencyAPI:
       const rateManager = new ExchangeRateManager(configManager);
       console.log('[CC] ExchangeRateManager initialized');
 
-      // 3. 实例化价格检测器
+      // 3. 实例化地理位置检测器
+      const geoDetector = new GeoLocationDetector(configManager);
+      console.log('[CC] GeoLocationDetector initialized');
+
+      // 3.5. 检测用户所在国家货币（异步，不阻塞）
+      geoDetector.detectUserCurrency().catch(err => {
+        console.warn('[CC] 地理位置检测失败（不影响功能）:', err.message);
+      });
+
+      // 4. 实例化价格检测器
       const detector = new CurrencyDetector(configManager);
       console.log('[CC] CurrencyDetector initialized');
 
-      // 4. 实例化工具提示管理器
+      // 5. 实例化工具提示管理器
       const tooltipManager = new TooltipManager(rateManager, configManager);
       console.log('[CC] TooltipManager initialized');
 
-      // 4.5. 实例化设置面板
+      // 5.5. 实例化设置面板
       const settingsPanel = new SettingsPanel(configManager);
       console.log('[CC] SettingsPanel initialized');
 
-      // 5. 延迟扫描页面（性能优化）
+      // 6. 延迟扫描页面（性能优化）
       if ('requestIdleCallback' in window) {
         requestIdleCallback(() => {
           detector.scanPage();
@@ -1953,10 +2419,10 @@ CurrencyAPI:
         }, 1000);
       }
 
-      // 6. 设置动态内容监听
+      // 7. 设置动态内容监听
       setupDynamicObserver(detector);
 
-      // 7. 预加载汇率数据
+      // 8. 预加载汇率数据
       rateManager.getRates('USD').then(() => {
         console.log('[CC] Exchange rates preloaded');
       }).catch(err => {
