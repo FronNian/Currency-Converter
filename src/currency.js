@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name         全能货币转换器 - Universal Currency Converter
+// @name         ✨✨✨全能货币转换器 - Universal Currency Converter✨✨✨
 // @name:en      Universal Currency Converter
 // @namespace    https://greasyfork.org/users/currency-converter
 // @version      1.1.0
-// @description  智能识别网页价格，鼠标悬停即可查看实时汇率转换。支持15+主流货币，使用免费API，数据缓存，性能优化。
+// @description  ✨✨✨智能识别网页价格，鼠标悬停即可查看实时汇率转换。支持15+主流货币，使用免费API，数据缓存，性能优化。
 // @description:en  Intelligently detect prices on web pages and view real-time currency conversions on hover. Supports 15+ major currencies with free APIs, data caching, and performance optimization.
 // @author       FronNian
 // @copyright    2025, FronNian (2081610040@qq.com)
