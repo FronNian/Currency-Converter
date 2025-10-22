@@ -2,7 +2,7 @@
 // @name         ✨✨✨全能货币转换器 - Universal Currency Converter✨✨✨
 // @name:en      Universal Currency Converter
 // @namespace    https://greasyfork.org/users/currency-converter
-// @version      1.4.1
+// @version      1.4.2
 // @description  ✨✨✨智能识别网页价格，鼠标悬停即可查看实时汇率转换。支持15+主流货币，使用免费API，数据缓存，性能优化。
 // @description:en  Intelligently detect prices on web pages and view real-time currency conversions on hover. Supports 15+ major currencies with free APIs, data caching, and performance optimization.
 // @author       FronNian
@@ -248,28 +248,32 @@
       settings: { title: '货币转换器设置', smartDisplay: '智能显示', autoDetect: '根据IP自动检测所在国家', autoDetectDesc: '启用后，优先显示你所在国家的货币（首次加载时检测）', excludeSource: '排除原货币', excludeSourceDesc: '转换结果中不显示原价格的货币（例如：美元价格不再显示美元转换）', maxDisplay: '最多显示货币数量', inlineMode: '一键批量显示模式', inlineModeDesc: '直接在价格旁显示转换结果，无需鼠标悬停（Alt+I 切换）', inlineCurrency: '内联显示货币', inlineCurrencyDesc: '选择在内联模式中显示的货币', targetCurrency: '目标货币', targetCurrencyDesc: '选择2-5个要转换的目标货币', apiKeys: 'API密钥（可选）', apiKeysDesc: '如果默认API配额用完，可以免费申请自己的API密钥：', getKey: '获取密钥', placeholder: '留空使用默认密钥', customRates: '自定义汇率（离线模式）', enableCustom: '启用自定义汇率', enableCustomDesc: '开启后将使用您手动设置的汇率，不再调用API（适用于离线或固定汇率场景）', customTip: '所有汇率以 USD（美元） 为基准货币', customExample: '例如：输入 CNY = 7.25 表示 1美元 = 7.25人民币', excludeSites: '排除网站', excludeSitesDesc: '不进行货币转换的网站', excludeSitesPlaceholder: '这些域名的网页不会进行价格识别和转换（每行一个域名）', excludeCurrent: '排除当前网站', hotkeys: '快捷键', hotkeysAvailable: '可用的快捷键：', language: '界面语言', languageDesc: '选择界面显示语言', cancel: '取消', save: '保存并刷新' },
       menu: { settings: '⚙️ 设置面板', reset: '🔄 重置配置', view: '🔍 查看当前配置', calculator: '💱 货币计算器 (Alt+C)' },
       calculator: { title: '货币计算器', rate: '汇率', updated: '更新', error: '无法获取汇率数据' },
-      messages: { saved: '✅ 配置已保存！\n\n页面即将刷新以应用新设置。', resetConfirm: '确定要重置所有配置吗？\n这将恢复到默认设置。', resetSuccess: '配置已重置！刷新页面后生效。', minCurrency: '❌ 请至少选择2个目标货币！', maxCurrency: '❌ 最多只能选择5个目标货币！', invalidRate: '❌ 无效的汇率值', invalidRateDesc: '请输入大于0的数字！', minCustomRate: '❌ 请至少设置一个货币的汇率，或关闭自定义汇率功能！', excludeAdded: '已将 "{domain}" 添加到排除列表\n刷新页面后生效', excludeExists: '"{domain}" 已在排除列表中', excludeAddedPanel: '已添加 "{domain}" 到排除列表\n保存后将生效', rateUnavailable: '汇率数据不可用，请检查网络' }
+      messages: { saved: '✅ 配置已保存！\n\n页面即将刷新以应用新设置。', resetConfirm: '确定要重置所有配置吗？\n这将恢复到默认设置。', resetSuccess: '配置已重置！刷新页面后生效。', minCurrency: '❌ 请至少选择2个目标货币！', maxCurrency: '❌ 最多只能选择5个目标货币！', invalidRate: '❌ 无效的汇率值', invalidRateDesc: '请输入大于0的数字！', minCustomRate: '❌ 请至少设置一个货币的汇率，或关闭自定义汇率功能！', excludeAdded: '已将 "{domain}" 添加到排除列表\n刷新页面后生效', excludeExists: '"{domain}" 已在排除列表中', excludeAddedPanel: '已添加 "{domain}" 到排除列表\n保存后将生效', rateUnavailable: '汇率数据不可用，请检查网络' },
+      config: { apiKeyTitle: 'API密钥配置', displaySettings: '显示设置', targetCurrenciesLabel: '目标货币', maxDisplay: '最多显示', pieces: '个', enabled: '启用', disabled: '禁用', userCountryCurrency: '用户国家货币', notDetected: '未检测', customKey: '自定义', defaultKey: '默认', freeQuota: '免费额度', requestsPerMonth: '请求/月', exampleText: '例如：输入 CNY = 7.25 表示 1美元 = 7.25人民币', selectCurrencyHint: '选择要显示的货币（至少2个，最多5个）', getKeyLink: '获取密钥 →' }
     },
     'en': {
       tooltip: { update: 'Updated', history: 'History', errorUnavailable: 'Exchange rate data temporarily unavailable', errorQuota: 'API quota may be exhausted', errorHint: 'Click Tampermonkey Menu → Settings', close: 'Close' },
       settings: { title: 'Currency Converter Settings', smartDisplay: 'Smart Display', autoDetect: 'Auto-detect country by IP', autoDetectDesc: 'When enabled, prioritize displaying your country\'s currency', excludeSource: 'Exclude source currency', excludeSourceDesc: 'Don\'t show the original currency in conversion results', maxDisplay: 'Max currencies to display', inlineMode: 'Batch Inline Display Mode', inlineModeDesc: 'Show conversion results directly next to prices (Alt+I to toggle)', inlineCurrency: 'Inline display currency', inlineCurrencyDesc: 'Select the currency to display in inline mode', targetCurrency: 'Target Currencies', targetCurrencyDesc: 'Select 2-5 target currencies for conversion', apiKeys: 'API Keys (Optional)', apiKeysDesc: 'If default API quota is exhausted, you can apply for free API keys:', getKey: 'Get Key', placeholder: 'Leave blank to use default key', customRates: 'Custom Exchange Rates (Offline Mode)', enableCustom: 'Enable custom rates', enableCustomDesc: 'When enabled, use your manually set rates instead of API calls', customTip: 'All rates are based on USD (US Dollar)', customExample: 'Example: CNY = 7.25 means 1 USD = 7.25 CNY', excludeSites: 'Exclude Websites', excludeSitesDesc: 'Websites where currency conversion will be disabled', excludeSitesPlaceholder: 'These domains will not have price detection and conversion (one domain per line)', excludeCurrent: 'Exclude Current Site', hotkeys: 'Keyboard Shortcuts', hotkeysAvailable: 'Available shortcuts:', language: 'Interface Language', languageDesc: 'Select interface display language', cancel: 'Cancel', save: 'Save & Refresh' },
       menu: { settings: '⚙️ Settings', reset: '🔄 Reset Config', view: '🔍 View Current Config', calculator: '💱 Currency Calculator (Alt+C)' },
       calculator: { title: 'Currency Calculator', rate: 'Rate', updated: 'Updated', error: 'Unable to fetch exchange rates' },
-      messages: { saved: '✅ Settings saved!\n\nPage will refresh to apply changes.', resetConfirm: 'Reset all settings to defaults?', resetSuccess: 'Settings reset! Refresh the page to take effect.', minCurrency: '❌ Please select at least 2 target currencies!', maxCurrency: '❌ Maximum 5 target currencies allowed!', invalidRate: '❌ Invalid exchange rate', invalidRateDesc: 'Please enter a number greater than 0!', minCustomRate: '❌ Please set at least one currency rate, or disable custom rates!', excludeAdded: 'Added "{domain}" to exclusion list\nRefresh the page to take effect', excludeExists: '"{domain}" is already in the exclusion list', excludeAddedPanel: 'Added "{domain}" to exclusion list\nWill take effect after saving', rateUnavailable: 'Exchange rate data unavailable, please check network' }
+      messages: { saved: '✅ Settings saved!\n\nPage will refresh to apply changes.', resetConfirm: 'Reset all settings to defaults?', resetSuccess: 'Settings reset! Refresh the page to take effect.', minCurrency: '❌ Please select at least 2 target currencies!', maxCurrency: '❌ Maximum 5 target currencies allowed!', invalidRate: '❌ Invalid exchange rate', invalidRateDesc: 'Please enter a number greater than 0!', minCustomRate: '❌ Please set at least one currency rate, or disable custom rates!', excludeAdded: 'Added "{domain}" to exclusion list\nRefresh the page to take effect', excludeExists: '"{domain}" is already in the exclusion list', excludeAddedPanel: 'Added "{domain}" to exclusion list\nWill take effect after saving', rateUnavailable: 'Exchange rate data unavailable, please check network' },
+      config: { apiKeyTitle: 'API Key Configuration', displaySettings: 'Display Settings', targetCurrenciesLabel: 'Target Currencies', maxDisplay: 'Max Display', pieces: '', enabled: 'Enabled', disabled: 'Disabled', userCountryCurrency: 'User Country Currency', notDetected: 'Not Detected', customKey: 'Custom', defaultKey: 'Default', freeQuota: 'Free Quota', requestsPerMonth: 'requests/month', exampleText: 'Example: CNY = 7.25 means 1 USD = 7.25 CNY', selectCurrencyHint: 'Select currencies to display (minimum 2, maximum 5)', getKeyLink: 'Get Key →' }
     },
     'ja': {
       tooltip: { update: '更新', history: '履歴', errorUnavailable: '為替レートデータが一時的に利用できません', errorQuota: 'APIクォータが使い果たされた可能性があります', errorHint: 'Tampermonkeyメニュー → 設定', close: '閉じる' },
       settings: { title: '通貨換算設定', smartDisplay: 'スマート表示', autoDetect: 'IPで国を自動検出', autoDetectDesc: '有効にすると、あなたの国の通貨を優先表示します', excludeSource: '元の通貨を除外', excludeSourceDesc: '換算結果に元の通貨を表示しない', maxDisplay: '最大表示通貨数', inlineMode: '一括インライン表示モード', inlineModeDesc: '価格の横に直接換算結果を表示（Alt+I で切替）', inlineCurrency: 'インライン表示通貨', inlineCurrencyDesc: 'インラインモードで表示する通貨を選択', targetCurrency: '対象通貨', targetCurrencyDesc: '換算する通貨を2～5個選択', apiKeys: 'APIキー（オプション）', apiKeysDesc: 'デフォルトのAPIクォータが使い果たされた場合、無料でAPIキーを申請できます：', getKey: 'キー取得', placeholder: '空白でデフォルトキーを使用', customRates: 'カスタム為替レート（オフラインモード）', enableCustom: 'カスタムレートを有効化', enableCustomDesc: '有効にすると、APIの代わりに手動設定したレートを使用します', customTip: 'すべてのレートはUSD（米ドル）を基準にしています', customExample: '例：CNY = 7.25 は 1米ドル = 7.25人民元を意味します', excludeSites: '除外するウェブサイト', excludeSitesDesc: '通貨換算が無効になるウェブサイト', excludeSitesPlaceholder: 'これらのドメインでは価格検出と換算が行われません（1行に1ドメイン）', excludeCurrent: '現在のサイトを除外', hotkeys: 'キーボードショートカット', hotkeysAvailable: '利用可能なショートカット：', language: 'インターフェース言語', languageDesc: 'インターフェース表示言語を選択', cancel: 'キャンセル', save: '保存して更新' },
       menu: { settings: '⚙️ 設定', reset: '🔄 リセット', view: '🔍 現在の設定を表示', calculator: '💱 通貨計算機 (Alt+C)' },
       calculator: { title: '通貨計算機', rate: 'レート', updated: '更新', error: '為替レートを取得できません' },
-      messages: { saved: '✅ 設定を保存しました！\n\nページを更新して変更を適用します。', resetConfirm: 'すべての設定をデフォルトにリセットしますか？', resetSuccess: '設定をリセットしました！ページを更新して反映してください。', minCurrency: '❌ 少なくとも2つの通貨を選択してください！', maxCurrency: '❌ 最大5つまでの通貨を選択できます！', invalidRate: '❌ 無効な為替レート', invalidRateDesc: '0より大きい数値を入力してください！', minCustomRate: '❌ 少なくとも1つの通貨レートを設定するか、カスタムレートを無効にしてください！', excludeAdded: '"{domain}" を除外リストに追加しました\nページを更新して反映してください', excludeExists: '"{domain}" は既に除外リストにあります', excludeAddedPanel: '"{domain}" を除外リストに追加しました\n保存後に反映されます', rateUnavailable: '為替レートデータが利用できません、ネットワークを確認してください' }
+      messages: { saved: '✅ 設定を保存しました！\n\nページを更新して変更を適用します。', resetConfirm: 'すべての設定をデフォルトにリセットしますか？', resetSuccess: '設定をリセットしました！ページを更新して反映してください。', minCurrency: '❌ 少なくとも2つの通貨を選択してください！', maxCurrency: '❌ 最大5つまでの通貨を選択できます！', invalidRate: '❌ 無効な為替レート', invalidRateDesc: '0より大きい数値を入力してください！', minCustomRate: '❌ 少なくとも1つの通貨レートを設定するか、カスタムレートを無効にしてください！', excludeAdded: '"{domain}" を除外リストに追加しました\nページを更新して反映してください', excludeExists: '"{domain}" は既に除外リストにあります', excludeAddedPanel: '"{domain}" を除外リストに追加しました\n保存後に反映されます', rateUnavailable: '為替レートデータが利用できません、ネットワークを確認してください' },
+      config: { apiKeyTitle: 'APIキー設定', displaySettings: '表示設定', targetCurrenciesLabel: '対象通貨', maxDisplay: '最大表示', pieces: '個', enabled: '有効', disabled: '無効', userCountryCurrency: 'ユーザー国通貨', notDetected: '未検出', customKey: 'カスタム', defaultKey: 'デフォルト', freeQuota: '無料枠', requestsPerMonth: 'リクエスト/月', exampleText: '例：CNY = 7.25 は 1米ドル = 7.25人民元を意味します', selectCurrencyHint: '表示する通貨を選択（最低2個、最大5個）', getKeyLink: 'キー取得 →' }
     },
     'ko': {
       tooltip: { update: '업데이트', history: '기록', errorUnavailable: '환율 데이터를 일시적으로 사용할 수 없습니다', errorQuota: 'API 할당량이 소진되었을 수 있습니다', errorHint: 'Tampermonkey 메뉴 → 설정', close: '닫기' },
       settings: { title: '통화 변환기 설정', smartDisplay: '스마트 표시', autoDetect: 'IP로 국가 자동 감지', autoDetectDesc: '활성화하면 귀하의 국가 통화를 우선 표시합니다', excludeSource: '원본 통화 제외', excludeSourceDesc: '변환 결과에 원본 통화를 표시하지 않음', maxDisplay: '최대 표시 통화 수', inlineMode: '일괄 인라인 표시 모드', inlineModeDesc: '가격 옆에 직접 변환 결과 표시 (Alt+I로 전환)', inlineCurrency: '인라인 표시 통화', inlineCurrencyDesc: '인라인 모드에서 표시할 통화 선택', targetCurrency: '대상 통화', targetCurrencyDesc: '변환할 통화 2~5개 선택', apiKeys: 'API 키 (선택사항)', apiKeysDesc: '기본 API 할당량이 소진된 경우 무료로 API 키를 신청할 수 있습니다:', getKey: '키 받기', placeholder: '비워두면 기본 키 사용', customRates: '사용자 정의 환율 (오프라인 모드)', enableCustom: '사용자 정의 환율 활성화', enableCustomDesc: '활성화하면 API 대신 수동 설정한 환율을 사용합니다', customTip: '모든 환율은 USD (미국 달러)를 기준으로 합니다', customExample: '예: CNY = 7.25는 1달러 = 7.25위안을 의미합니다', excludeSites: '제외할 웹사이트', excludeSitesDesc: '통화 변환이 비활성화될 웹사이트', excludeSitesPlaceholder: '이러한 도메인에서는 가격 감지 및 변환이 수행되지 않습니다 (한 줄에 하나의 도메인)', excludeCurrent: '현재 사이트 제외', hotkeys: '키보드 단축키', hotkeysAvailable: '사용 가능한 단축키:', language: '인터페이스 언어', languageDesc: '인터페이스 표시 언어 선택', cancel: '취소', save: '저장 및 새로고침' },
       menu: { settings: '⚙️ 설정', reset: '🔄 재설정', view: '🔍 현재 설정 보기', calculator: '💱 통화 계산기 (Alt+C)' },
       calculator: { title: '통화 계산기', rate: '환율', updated: '업데이트됨', error: '환율 데이터를 가져올 수 없습니다' },
-      messages: { saved: '✅ 설정이 저장되었습니다!\n\n변경사항을 적용하기 위해 페이지를 새로고침합니다.', resetConfirm: '모든 설정을 기본값으로 재설정하시겠습니까?', resetSuccess: '설정이 재설정되었습니다! 페이지를 새로고침하여 적용하세요.', minCurrency: '❌ 최소 2개의 통화를 선택하세요!', maxCurrency: '❌ 최대 5개의 통화까지 선택할 수 있습니다!', invalidRate: '❌ 잘못된 환율', invalidRateDesc: '0보다 큰 숫자를 입력하세요!', minCustomRate: '❌ 최소 하나의 통화 환율을 설정하거나 사용자 정의 환율을 비활성화하세요!', excludeAdded: '"{domain}"을(를) 제외 목록에 추가했습니다\n페이지를 새로고침하여 적용하세요', excludeExists: '"{domain}"은(는) 이미 제외 목록에 있습니다', excludeAddedPanel: '"{domain}"을(를) 제외 목록에 추가했습니다\n저장 후 적용됩니다', rateUnavailable: '환율 데이터를 사용할 수 없습니다. 네트워크를 확인하세요' }
+      messages: { saved: '✅ 설정이 저장되었습니다!\n\n변경사항을 적용하기 위해 페이지를 새로고침합니다.', resetConfirm: '모든 설정을 기본값으로 재설정하시겠습니까?', resetSuccess: '설정이 재설정되었습니다! 페이지를 새로고침하여 적용하세요.', minCurrency: '❌ 최소 2개의 통화를 선택하세요!', maxCurrency: '❌ 최대 5개의 통화까지 선택할 수 있습니다!', invalidRate: '❌ 잘못된 환율', invalidRateDesc: '0보다 큰 숫자를 입력하세요!', minCustomRate: '❌ 최소 하나의 통화 환율을 설정하거나 사용자 정의 환율을 비활성화하세요!', excludeAdded: '"{domain}"을(를) 제외 목록에 추가했습니다\n페이지를 새로고침하여 적용하세요', excludeExists: '"{domain}"은(는) 이미 제외 목록에 있습니다', excludeAddedPanel: '"{domain}"을(를) 제외 목록에 추가했습니다\n저장 후 적용됩니다', rateUnavailable: '환율 데이터를 사용할 수 없습니다. 네트워크를 확인하세요' },
+      config: { apiKeyTitle: 'API 키 설정', displaySettings: '표시 설정', targetCurrenciesLabel: '대상 통화', maxDisplay: '최대 표시', pieces: '개', enabled: '활성화', disabled: '비활성화', userCountryCurrency: '사용자 국가 통화', notDetected: '미감지', customKey: '커스텀', defaultKey: '기본', freeQuota: '무료 할당량', requestsPerMonth: '요청/월', exampleText: '예: CNY = 7.25는 1달러 = 7.25위안을 의미합니다', selectCurrencyHint: '표시할 통화 선택 (최소 2개, 최대 5개)', getKeyLink: '키 받기 →' }
     }
   };
 
@@ -2015,10 +2019,10 @@
       
       GM_registerMenuCommand(this.i18n.t('menu.view'), () => {
         const apiKeys = this.config.get('apiKeys');
-        const isCustom = (key, defaultKey) => key !== defaultKey ? '✅ 自定义' : '📦 默认';
+        const isCustom = (key, defaultKey) => key !== defaultKey ? `✅ ${this.i18n.t('config.customKey')}` : `📦 ${this.i18n.t('config.defaultKey')}`;
         
         const info = `
-【API密钥配置】
+【${this.i18n.t('config.apiKeyTitle')}】
 ExchangeRate-API: 
   ${apiKeys.exchangeRateApi.substring(0, 8)}****${apiKeys.exchangeRateApi.substring(apiKeys.exchangeRateApi.length - 4)}
   ${isCustom(apiKeys.exchangeRateApi, DEFAULT_CONFIG.apiKeys.exchangeRateApi)}
@@ -2031,12 +2035,12 @@ CurrencyAPI:
   ${apiKeys.currencyapi.substring(0, 8)}****${apiKeys.currencyapi.substring(apiKeys.currencyapi.length - 4)}
   ${isCustom(apiKeys.currencyapi, DEFAULT_CONFIG.apiKeys.currencyapi)}
 
-【显示设置】
-目标货币: ${this.config.get('targetCurrencies').join(', ')}
-最多显示: ${this.config.get('maxDisplayCurrencies')}个
-IP自动检测: ${this.config.get('autoDetectLocation') ? '✅ 启用' : '❌ 禁用'}
-排除原货币: ${this.config.get('excludeSourceCurrency') ? '✅ 启用' : '❌ 禁用'}
-用户国家货币: ${this.config.get('userCountryCurrency') || '未检测'}
+【${this.i18n.t('config.displaySettings')}】
+${this.i18n.t('config.targetCurrenciesLabel')}: ${this.config.get('targetCurrencies').join(', ')}
+${this.i18n.t('config.maxDisplay')}: ${this.config.get('maxDisplayCurrencies')}${this.i18n.t('config.pieces')}
+${this.i18n.t('settings.autoDetect')}: ${this.config.get('autoDetectLocation') ? `✅ ${this.i18n.t('config.enabled')}` : `❌ ${this.i18n.t('config.disabled')}`}
+${this.i18n.t('settings.excludeSource')}: ${this.config.get('excludeSourceCurrency') ? `✅ ${this.i18n.t('config.enabled')}` : `❌ ${this.i18n.t('config.disabled')}`}
+${this.i18n.t('config.userCountryCurrency')}: ${this.config.get('userCountryCurrency') || this.i18n.t('config.notDetected')}
         `.trim();
         
         alert(info);
@@ -2098,47 +2102,47 @@ IP自动检测: ${this.config.get('autoDetectLocation') ? '✅ 启用' : '❌ �
           <div class="cc-settings-body">
             <!-- 智能显示设置 -->
             <div class="cc-section">
-              <h3>🎯 智能显示</h3>
+              <h3>🎯 ${this.i18n.t('settings.smartDisplay')}</h3>
               
               <div class="cc-setting-group">
                 <label class="cc-checkbox-label">
                   <input type="checkbox" id="cc-auto-detect" />
-                  <span><strong>根据IP自动检测所在国家</strong></span>
+                  <span><strong>${this.i18n.t('settings.autoDetect')}</strong></span>
                 </label>
-                <small>启用后，优先显示你所在国家的货币（首次加载时检测）</small>
+                <small>${this.i18n.t('settings.autoDetectDesc')}</small>
               </div>
 
               <div class="cc-setting-group">
                 <label class="cc-checkbox-label">
                   <input type="checkbox" id="cc-exclude-source" />
-                  <span><strong>排除原货币</strong></span>
+                  <span><strong>${this.i18n.t('settings.excludeSource')}</strong></span>
                 </label>
-                <small>转换结果中不显示原价格的货币（例如：美元价格不再显示美元转换）</small>
+                <small>${this.i18n.t('settings.excludeSourceDesc')}</small>
               </div>
 
               <div class="cc-setting-group">
                 <label>
-                  <strong>最多显示货币数量</strong>
+                  <strong>${this.i18n.t('settings.maxDisplay')}</strong>
                 </label>
                 <select id="cc-max-display">
-                  <option value="2">2个</option>
-                  <option value="3">3个</option>
-                  <option value="4">4个</option>
-                  <option value="5">5个</option>
+                  <option value="2">2${this.i18n.t('config.pieces')}</option>
+                  <option value="3">3${this.i18n.t('config.pieces')}</option>
+                  <option value="4">4${this.i18n.t('config.pieces')}</option>
+                  <option value="5">5${this.i18n.t('config.pieces')}</option>
                 </select>
               </div>
 
               <div class="cc-setting-group">
                 <label class="cc-checkbox-label">
                   <input type="checkbox" id="cc-inline-mode" />
-                  <span><strong>一键批量显示模式</strong></span>
+                  <span><strong>${this.i18n.t('settings.inlineMode')}</strong></span>
                 </label>
-                <small>直接在价格旁显示转换结果，无需鼠标悬停（Alt+I 切换）</small>
+                <small>${this.i18n.t('settings.inlineModeDesc')}</small>
               </div>
 
               <div class="cc-setting-group" id="cc-inline-currency-group" style="margin-left: 24px; display: none;">
                 <label>
-                  <strong>内联显示货币</strong>
+                  <strong>${this.i18n.t('settings.inlineCurrency')}</strong>
                 </label>
                 <select id="cc-inline-currency">
                   <option value="CNY">CNY - 人民币</option>
@@ -2150,15 +2154,15 @@ IP自动检测: ${this.config.get('autoDetectLocation') ? '✅ 启用' : '❌ �
                   <option value="TWD">TWD - 新台币</option>
                   <option value="KRW">KRW - 韩元</option>
                 </select>
-                <small>选择在内联模式中显示的货币</small>
+                <small>${this.i18n.t('settings.inlineCurrencyDesc')}</small>
               </div>
             </div>
 
             <!-- 目标货币选择 -->
             <div class="cc-section">
-              <h3>💰 目标货币</h3>
+              <h3>💰 ${this.i18n.t('settings.targetCurrency')}</h3>
               <small style="display: block; margin-bottom: 10px; color: #6b7280;">
-                选择要显示的货币（至少2个，最多5个）
+                ${this.i18n.t('config.selectCurrencyHint')}
               </small>
               <div class="cc-currency-grid" id="cc-currency-checkboxes">
                 ${allCurrencies.map(cur => `
@@ -2172,56 +2176,56 @@ IP自动检测: ${this.config.get('autoDetectLocation') ? '✅ 启用' : '❌ �
 
             <!-- API密钥配置 -->
             <div class="cc-section">
-              <h3>🔑 API密钥（可选）</h3>
+              <h3>🔑 ${this.i18n.t('settings.apiKeys')}</h3>
               <div class="cc-info-box">
-                <p>📝 如果默认API配额用完，可以免费申请自己的API密钥：</p>
+                <p>📝 ${this.i18n.t('settings.apiKeysDesc')}</p>
               </div>
               
               <div class="cc-setting-group">
                 <label>
                   <strong>ExchangeRate-API</strong> 
-                  <a href="https://www.exchangerate-api.com/" target="_blank">获取密钥 →</a>
+                  <a href="https://www.exchangerate-api.com/" target="_blank">${this.i18n.t('config.getKeyLink')}</a>
                 </label>
-                <small>免费额度：1,500请求/月</small>
-                <input type="text" id="cc-key-exchangerate" placeholder="留空使用默认密钥" />
+                <small>${this.i18n.t('config.freeQuota')}: 1,500 ${this.i18n.t('config.requestsPerMonth')}</small>
+                <input type="text" id="cc-key-exchangerate" placeholder="${this.i18n.t('settings.placeholder')}" />
               </div>
 
               <div class="cc-setting-group">
                 <label>
                   <strong>Fixer.io</strong>
-                  <a href="https://fixer.io/" target="_blank">获取密钥 →</a>
+                  <a href="https://fixer.io/" target="_blank">${this.i18n.t('config.getKeyLink')}</a>
                 </label>
-                <small>免费额度：100请求/月</small>
-                <input type="text" id="cc-key-fixer" placeholder="留空使用默认密钥" />
+                <small>${this.i18n.t('config.freeQuota')}: 100 ${this.i18n.t('config.requestsPerMonth')}</small>
+                <input type="text" id="cc-key-fixer" placeholder="${this.i18n.t('settings.placeholder')}" />
               </div>
 
               <div class="cc-setting-group">
                 <label>
                   <strong>CurrencyAPI</strong>
-                  <a href="https://currencyapi.com/" target="_blank">获取密钥 →</a>
+                  <a href="https://currencyapi.com/" target="_blank">${this.i18n.t('config.getKeyLink')}</a>
                 </label>
-                <small>免费额度：300请求/月</small>
-                <input type="text" id="cc-key-currencyapi" placeholder="留空使用默认密钥" />
+                <small>${this.i18n.t('config.freeQuota')}: 300 ${this.i18n.t('config.requestsPerMonth')}</small>
+                <input type="text" id="cc-key-currencyapi" placeholder="${this.i18n.t('settings.placeholder')}" />
               </div>
             </div>
 
             <!-- 自定义汇率 -->
             <div class="cc-section">
-              <h3>⚙️ 自定义汇率（离线模式）</h3>
+              <h3>⚙️ ${this.i18n.t('settings.customRates')}</h3>
               
               <div class="cc-setting-group">
                 <label class="cc-checkbox-label">
                   <input type="checkbox" id="cc-enable-custom-rates" />
-                  <span><strong>启用自定义汇率</strong></span>
+                  <span><strong>${this.i18n.t('settings.enableCustom')}</strong></span>
                 </label>
-                <small>开启后将使用您手动设置的汇率，不再调用API（适用于离线或固定汇率场景）</small>
+                <small>${this.i18n.t('settings.enableCustomDesc')}</small>
               </div>
 
               <div id="cc-custom-rates-panel" style="display: none; margin-top: 12px; padding: 12px; background: #f9fafb; border-radius: 6px; border: 1px solid #e5e7eb;">
                 <div class="cc-info-box" style="background: #fef3c7; border-left-color: #f59e0b;">
                   <p style="color: #92400e; font-size: 13px;">
-                    <strong>💡 提示：</strong>所有汇率以 <strong>USD（美元）</strong> 为基准货币。<br>
-                    例如：输入 CNY = 7.25 表示 1美元 = 7.25人民币
+                    <strong>💡 ${this.i18n.t('settings.customTip')}</strong><br>
+                    ${this.i18n.t('config.exampleText')}
                   </p>
                 </div>
 
@@ -3683,7 +3687,7 @@ IP自动检测: ${this.config.get('autoDetectLocation') ? '✅ 启用' : '❌ �
    * 主初始化函数
    */
   function init() {
-    console.log('%c💱 Currency Converter v1.4.1 Loaded', 
+    console.log('%c💱 Currency Converter v1.4.2 Loaded', 
       'color: #667eea; font-size: 14px; font-weight: bold;');
 
     try {
