@@ -25,6 +25,7 @@
 // @connect      ipapi.co
 // @connect      api.coingecko.com
 // @license      GPL-3.0-or-later
+// @icon         https://raw.githubusercontent.com/FronNian/Currency-Converter/f34fe97c36eb706e51e6b8d252ea63f6da620797/assets/icon.svg
 // @run-at       document-idle
 // @homepage     https://greasyfork.org/scripts/currency-converter
 // @supportURL   https://greasyfork.org/scripts/currency-converter/feedback
