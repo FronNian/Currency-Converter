@@ -27,7 +27,7 @@
 // @license      GPL-3.0-or-later
 // @icon         https://raw.githubusercontent.com/FronNian/Currency-Converter/f34fe97c36eb706e51e6b8d252ea63f6da620797/assets/icon.svg
 // @run-at       document-idle
-// @homepage     https://greasyfork.org/scripts/currency-converter
+// @homepage     https://greasyfork.org/zh-CN/scripts/553280-%E5%85%A8%E8%83%BD%E8%B4%A7%E5%B8%81%E8%BD%AC%E6%8D%A2%E5%99%A8-universal-currency-converter
 // @supportURL   https://greasyfork.org/en/scripts/553280-%E5%85%A8%E8%83%BD%E8%B4%A7%E5%B8%81%E8%BD%AC%E6%8D%A2%E5%99%A8-universal-currency-converter?locale_override=1
 // ==/UserScript==
 
