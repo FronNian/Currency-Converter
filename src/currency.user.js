@@ -25,7 +25,6 @@
 // @connect      ipapi.co
 // @connect      api.coingecko.com
 // @license      GPL-3.0-or-later
-// @icon         data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="0.9em" font-size="90">💱</text></svg>
 // @run-at       document-idle
 // @homepage     https://greasyfork.org/scripts/currency-converter
 // @supportURL   https://greasyfork.org/scripts/currency-converter/feedback
