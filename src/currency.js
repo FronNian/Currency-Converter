@@ -1,10 +1,16 @@
 // ==UserScript==
-// @name         ✨✨✨全能货币转换器 - Universal Currency Converter✨✨✨
-// @name:en      Universal Currency Converter
+// @name         ✨全能货币转换器 - Universal Currency Converter✨
+// @name:zh-CN   ✨全能货币转换器✨
+// @name:en      ✨Universal Currency Converter✨
+// @name:ja      ✨ユニバーサル通貨コンバーター✨
+// @name:ko      ✨유니버설 통화 변환기✨
 // @namespace    https://greasyfork.org/users/currency-converter
-// @version      1.5.0
-// @description  ✨✨✨智能识别网页价格，鼠标悬停即可查看实时汇率转换。支持57种主流货币，API密钥池轮换，智能多语言界面。
-// @description:en  Intelligently detect prices on web pages and view real-time currency conversions on hover. Supports 57 major currencies, API key rotation, smart multilingual interface.
+// @version      1.6.0
+// @description  智能识别网页价格，鼠标悬停即可查看实时汇率转换。支持57种法币+70种加密货币，API密钥池轮换，智能多语言界面。
+// @description:zh-CN  智能识别网页价格，鼠标悬停即可查看实时汇率转换。支持57种法币+70种加密货币，API密钥池轮换，智能多语言界面。
+// @description:en  Intelligently detect prices on web pages and view real-time currency conversions on hover. Supports 57 fiat + 70 cryptocurrencies, API key rotation, smart multilingual interface.
+// @description:ja  Webページ上の価格を自動認識し、マウスホバーでリアルタイム為替換算を表示。57種類の法定通貨+70種類の暗号通貨に対応、APIキープール、多言語対応。
+// @description:ko  웹페이지 가격을 자동 인식하고 마우스 호버 시 실시간 환율 변환을 표시합니다. 57개 법정화폐+70개 암호화폐 지원, API 키 풀, 다국어 인터페이스.
 // @author       FronNian
 // @copyright    2025, FronNian (huayuan4564@gmail.com)
 // @match        *://*/*
@@ -17,6 +23,7 @@
 // @connect      api.fixer.io
 // @connect      api.currencyapi.com
 // @connect      ipapi.co
+// @connect      api.coingecko.com
 // @license      GPL-3.0-or-later
 // @icon         data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="0.9em" font-size="90">💱</text></svg>
 // @run-at       document-idle
@@ -140,6 +147,13 @@
     
     // 缓存配置
     cacheExpiry: 3600000, // 1小时（毫秒）
+    cryptoCacheExpiry: 300000, // 加密货币缓存5分钟（波动大）
+    
+    // 加密货币支持
+    enableCrypto: false,  // 启用加密货币识别和转换
+    cryptoCurrencies: ['BTC', 'ETH', 'USDT', 'BNB', 'SOL', 'XRP', 'ADA', 'DOGE', 'DOT', 'MATIC'],
+    showCryptoInTooltip: true,  // 在工具提示中显示加密货币
+    cryptoApiKey: '',  // CoinGecko Pro API Key (可选，免费版无需)
     
     // UI配置
     tooltipDelay: 300,       // 工具提示显示延迟（毫秒）
@@ -986,6 +1000,222 @@
     }
   }
 
+  /* ==================== 加密货币汇率管理器 ==================== */
+  
+  /**
+   * 加密货币汇率管理器类
+   * 使用CoinGecko API获取加密货币价格（免费，无需API密钥）
+   */
+  class CryptoRateManager {
+    constructor(configManager) {
+      this.config = configManager;
+      this.currentRates = null;
+      this.updatePromise = null;
+      
+      // CoinGecko API配置
+      this.api = {
+        name: 'coingecko',
+        url: 'https://api.coingecko.com/api/v3/simple/price',
+        freeLimit: 50, // 50 requests/minute
+        parseResponse: (data) => ({
+          rates: data,
+          timestamp: Date.now(),
+          source: 'coingecko'
+        })
+      };
+      
+      // 加密货币ID映射（CoinGecko格式）
+      this.cryptoIdMap = {
+        'BTC': 'bitcoin', 'ETH': 'ethereum', 'USDT': 'tether', 'BNB': 'binancecoin', 'SOL': 'solana',
+        'XRP': 'ripple', 'USDC': 'usd-coin', 'ADA': 'cardano', 'DOGE': 'dogecoin', 'TRX': 'tron',
+        'DOT': 'polkadot', 'MATIC': 'matic-network', 'LTC': 'litecoin', 'SHIB': 'shiba-inu', 'DAI': 'dai',
+        'AVAX': 'avalanche-2', 'UNI': 'uniswap', 'LINK': 'chainlink', 'ATOM': 'cosmos', 'XLM': 'stellar',
+        'OKB': 'okb', 'BCH': 'bitcoin-cash', 'XMR': 'monero', 'ETC': 'ethereum-classic', 'FIL': 'filecoin',
+        'APT': 'aptos', 'ARB': 'arbitrum', 'OP': 'optimism', 'NEAR': 'near', 'VET': 'vechain',
+        'ALGO': 'algorand', 'GRT': 'the-graph', 'SAND': 'the-sandbox', 'MANA': 'decentraland', 'AXS': 'axie-infinity',
+        'FTM': 'fantom', 'THETA': 'theta-token', 'XTZ': 'tezos', 'EOS': 'eos', 'EGLD': 'elrond-erd-2',
+        'AAVE': 'aave', 'BSV': 'bitcoin-cash-sv', 'FLOW': 'flow', 'ICP': 'internet-computer', 'ZEC': 'zcash',
+        'MKR': 'maker', 'SNX': 'havven', 'NEO': 'neo', 'KLAY': 'klay-token', 'CRV': 'curve-dao-token',
+        'BUSD': 'binance-usd', 'TUSD': 'true-usd', 'USDP': 'paxos-standard', 'FRAX': 'frax',
+        'CAKE': 'pancakeswap-token', 'SUSHI': 'sushi', 'COMP': 'compound-governance-token', 'YFI': 'yearn-finance',
+        'STRK': 'starknet', 'IMX': 'immutable-x', 'LRC': 'loopring',
+        'HBAR': 'hedera-hashgraph', 'QNT': 'quant-network', 'RUNE': 'thorchain', 'GALA': 'gala', 'CHZ': 'chiliz'
+      };
+    }
+
+    /**
+     * 获取加密货币价格（支持多种法币）
+     * @param {Array<string>} cryptos - 加密货币代码列表 ['BTC', 'ETH']
+     * @param {Array<string>} fiatCurrencies - 法币代码列表 ['USD', 'CNY']
+     * @returns {Promise<Object>} 价格数据
+     */
+    async getRates(cryptos, fiatCurrencies) {
+      if (!this.config.get('enableCrypto')) {
+        return null;
+      }
+
+      try {
+        // 检查缓存
+        const cached = this.getFromCache();
+        if (cached && !this.isExpired(cached)) {
+          console.log('[CC] Using cached crypto rates');
+          return cached;
+        }
+
+        // 避免并发请求
+        if (this.updatePromise) {
+          return await this.updatePromise;
+        }
+
+        this.updatePromise = this.fetchRates(cryptos, fiatCurrencies);
+        const rates = await this.updatePromise;
+        this.saveToCache(rates);
+        this.currentRates = rates;
+        this.updatePromise = null;
+        return rates;
+
+      } catch (error) {
+        console.warn('[CC] Crypto API failed, trying cache:', error);
+        const cached = this.getFromCache();
+        if (cached) {
+          console.log('[CC] Using expired crypto cache as fallback');
+          return cached;
+        }
+        throw error;
+      }
+    }
+
+    /**
+     * 调用CoinGecko API获取价格
+     * @param {Array<string>} cryptos - 加密货币代码列表
+     * @param {Array<string>} fiatCurrencies - 法币代码列表
+     * @returns {Promise<Object>} API响应数据
+     */
+    async fetchRates(cryptos, fiatCurrencies) {
+      // 转换为CoinGecko ID
+      const cryptoIds = cryptos
+        .map(code => this.cryptoIdMap[code])
+        .filter(id => id)
+        .join(',');
+      
+      // 转换法币代码为小写
+      const vsCurrencies = fiatCurrencies.map(c => c.toLowerCase()).join(',');
+      
+      const url = `${this.api.url}?ids=${cryptoIds}&vs_currencies=${vsCurrencies}`;
+      
+      console.log(`[CC] Fetching crypto rates: ${cryptos.join(', ')} → ${fiatCurrencies.join(', ')}`);
+
+      try {
+        const response = await new Promise((resolve, reject) => {
+          GM_xmlhttpRequest({
+            method: 'GET',
+            url: url,
+            timeout: 10000,
+            onload: (resp) => {
+              if (resp.status === 200) {
+                try {
+                  const data = JSON.parse(resp.responseText);
+                  resolve(data);
+                } catch (e) {
+                  reject(new Error('Invalid JSON response'));
+                }
+              } else {
+                reject(new Error(`HTTP ${resp.status}: ${resp.statusText}`));
+              }
+            },
+            onerror: () => reject(new Error('Network error')),
+            ontimeout: () => reject(new Error('Request timeout'))
+          });
+        });
+
+        // 转换响应格式为易用的结构
+        // CoinGecko返回: { "bitcoin": { "usd": 50000, "cny": 350000 } }
+        // 转换为: { "BTC": { "USD": 50000, "CNY": 350000 } }
+        const normalizedRates = {};
+        for (const [code, coinId] of Object.entries(this.cryptoIdMap)) {
+          if (response[coinId]) {
+            normalizedRates[code] = {};
+            for (const fiat of fiatCurrencies) {
+              const price = response[coinId][fiat.toLowerCase()];
+              if (price) {
+                normalizedRates[code][fiat] = price;
+              }
+            }
+          }
+        }
+
+        console.log(`[CC] ✅ Got crypto rates for ${Object.keys(normalizedRates).length} coins`);
+        
+        return {
+          rates: normalizedRates,
+          timestamp: Date.now(),
+          source: 'coingecko'
+        };
+
+      } catch (error) {
+        console.error('[CC] ❌ Crypto API error:', error);
+        throw error;
+      }
+    }
+
+    /**
+     * 转换加密货币到法币
+     * @param {string} crypto - 加密货币代码 (如 'BTC')
+     * @param {number} amount - 数量
+     * @param {string} targetCurrency - 目标法币 (如 'USD')
+     * @returns {Promise<number|null>} 转换后的金额
+     */
+    async convert(crypto, amount, targetCurrency) {
+      try {
+        const rates = await this.getRates([crypto], [targetCurrency]);
+        if (!rates || !rates.rates[crypto] || !rates.rates[crypto][targetCurrency]) {
+          return null;
+        }
+        return amount * rates.rates[crypto][targetCurrency];
+      } catch (error) {
+        console.warn(`[CC] Failed to convert ${crypto} to ${targetCurrency}:`, error);
+        return null;
+      }
+    }
+
+    /**
+     * 从缓存获取数据
+     * @returns {Object|null} 缓存的汇率数据
+     */
+    getFromCache() {
+      try {
+        const cached = GM_getValue('cc_crypto_rates_cache', null);
+        return cached ? JSON.parse(cached) : null;
+      } catch (error) {
+        console.error('[CC] Failed to get crypto cache:', error);
+        return null;
+      }
+    }
+
+    /**
+     * 保存数据到缓存
+     * @param {Object} data - 汇率数据
+     */
+    saveToCache(data) {
+      try {
+        GM_setValue('cc_crypto_rates_cache', JSON.stringify(data));
+      } catch (error) {
+        console.error('[CC] Failed to save crypto cache:', error);
+      }
+    }
+
+    /**
+     * 检查缓存是否过期
+     * @param {Object} data - 缓存数据
+     * @returns {boolean} 是否过期
+     */
+    isExpired(data) {
+      if (!data || !data.timestamp) return true;
+      const expiry = this.config.get('cryptoCacheExpiry') || 300000; // 5分钟
+      return Date.now() - data.timestamp > expiry;
+    }
+  }
+
   /* ==================== 货币识别引擎 ==================== */
   
   /**
@@ -1052,6 +1282,20 @@
           currencyGroup: 1,
           amountGroup: 2,
           streamingFormat: true
+        },
+        {
+          // 加密货币格式1：数字在前：0.5 BTC, 1.23456 ETH, 100 USDT
+          pattern: /\b([0-9]+(?:\.[0-9]{1,8})?)\s+(BTC|ETH|USDT|BNB|SOL|XRP|USDC|ADA|DOGE|TRX|DOT|MATIC|LTC|SHIB|DAI|AVAX|UNI|LINK|ATOM|XLM|OKB|BCH|XMR|ETC|FIL|APT|ARB|OP|NEAR|VET|ALGO|GRT|SAND|MANA|AXS|FTM|THETA|XTZ|EOS|EGLD|AAVE|BSV|FLOW|ICP|ZEC|MKR|SNX|NEO|KLAY|CRV|BUSD|TUSD|USDP|FRAX|CAKE|SUSHI|COMP|YFI|STRK|IMX|LRC|HBAR|QNT|RUNE|GALA|CHZ)\b/gi,
+          amountGroup: 1,
+          currencyGroup: 2,
+          isCrypto: true
+        },
+        {
+          // 加密货币格式2：货币在前：BTC 0.5, ETH 1.23456
+          pattern: /\b(BTC|ETH|USDT|BNB|SOL|XRP|USDC|ADA|DOGE|TRX|DOT|MATIC|LTC|SHIB|DAI|AVAX|UNI|LINK|ATOM|XLM|OKB|BCH|XMR|ETC|FIL|APT|ARB|OP|NEAR|VET|ALGO|GRT|SAND|MANA|AXS|FTM|THETA|XTZ|EOS|EGLD|AAVE|BSV|FLOW|ICP|ZEC|MKR|SNX|NEO|KLAY|CRV|BUSD|TUSD|USDP|FRAX|CAKE|SUSHI|COMP|YFI|STRK|IMX|LRC|HBAR|QNT|RUNE|GALA|CHZ)\s+([0-9]+(?:\.[0-9]{1,8})?)\b/gi,
+          currencyGroup: 1,
+          amountGroup: 2,
+          isCrypto: true
         }
       ];
     }
@@ -1205,7 +1449,8 @@
         originalText: match[0],
         currency: this.normalizeCurrency(currency || '$'),
         amount: this.parseAmount(amountStr, patternDef.europeanFormat),
-        position: match.index
+        position: match.index,
+        isCrypto: patternDef.isCrypto || false  // 标记是否为加密货币
       };
     }
 
@@ -1403,6 +1648,7 @@
       try {
         element.dataset.ccOriginalPrice = priceData.amount;
         element.dataset.ccCurrency = priceData.currency;
+        element.dataset.ccIsCrypto = priceData.isCrypto ? 'true' : 'false';
         element.classList.add('cc-price-detected');
         this.detectedElements.set(element, priceData);
         
@@ -1501,8 +1747,9 @@
    * 负责监听鼠标事件、渲染工具提示、显示转换结果
    */
   class TooltipManager {
-    constructor(rateManager, configManager, i18n) {
+    constructor(rateManager, configManager, i18n, cryptoRateManager) {
       this.rateManager = rateManager;
+      this.cryptoRateManager = cryptoRateManager;
       this.config = configManager;
       this.i18n = i18n;
       this.currentTooltip = null;
@@ -3934,7 +4181,7 @@ ${this.i18n.t('config.userCountryCurrency')}: ${this.config.get('userCountryCurr
    * 主初始化函数
    */
   function init() {
-    console.log('%c💱 Currency Converter v1.5.0 Loaded', 
+    console.log('%c💱 Currency Converter v1.6.0 Loaded', 
       'color: #667eea; font-size: 14px; font-weight: bold;');
 
     try {
@@ -3960,6 +4207,10 @@ ${this.i18n.t('config.userCountryCurrency')}: ${this.config.get('userCountryCurr
       // 2. 实例化汇率管理器
       const rateManager = new ExchangeRateManager(configManager);
       console.log('[CC] ExchangeRateManager initialized');
+      
+      // 5. 实例化加密货币汇率管理器
+      const cryptoRateManager = new CryptoRateManager(configManager);
+      console.log('[CC] CryptoRateManager initialized');
 
       // 3. 实例化地理位置检测器
       const geoDetector = new GeoLocationDetector(configManager);
@@ -3975,7 +4226,7 @@ ${this.i18n.t('config.userCountryCurrency')}: ${this.config.get('userCountryCurr
       console.log('[CC] CurrencyDetector initialized');
 
       // 5. 实例化工具提示管理器
-      const tooltipManager = new TooltipManager(rateManager, configManager, i18n);
+      const tooltipManager = new TooltipManager(rateManager, configManager, i18n, cryptoRateManager);
       console.log('[CC] TooltipManager initialized');
 
       // 5.1. 连接detector和rateManager以支持内联模式
