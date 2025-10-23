@@ -5,7 +5,7 @@
 // @name:ja      ✨ユニバーサル通貨コンバーター✨
 // @name:ko      ✨유니버설 통화 변환기✨
 // @namespace    https://greasyfork.org/users/currency-converter
-// @version      1.6.1
+// @version      1.6.2
 // @description  智能识别网页价格，鼠标悬停即可查看实时汇率转换。支持57种法币+70种加密货币，API密钥池轮换，智能多语言界面。
 // @description:zh-CN  智能识别网页价格，鼠标悬停即可查看实时汇率转换。支持57种法币+70种加密货币，API密钥池轮换，智能多语言界面。
 // @description:en  Intelligently detect prices on web pages and view real-time currency conversions on hover. Supports 57 fiat + 70 cryptocurrencies, API key rotation, smart multilingual interface.
@@ -1790,6 +1790,20 @@
     handleMouseOver(event) {
       const target = event.target.closest('.cc-price-detected');
       if (!target) return;
+
+      // 检查鼠标是否在UI元素内（设置面板、计算器、tooltip本身）
+      const uiElements = [
+        '.cc-settings-panel',
+        '.cc-calculator-panel',
+        '.cc-tooltip'
+      ];
+      
+      for (const selector of uiElements) {
+        if (event.target.closest(selector)) {
+          console.log('[CC] Mouse over UI element, skipping tooltip');
+          return; // 鼠标在UI元素上，不显示tooltip
+        }
+      }
 
       clearTimeout(this.hideTimer);
       this.showTooltip(target, event);
@@ -4181,7 +4195,7 @@ ${this.i18n.t('config.userCountryCurrency')}: ${this.config.get('userCountryCurr
    * 主初始化函数
    */
   function init() {
-    console.log('%c💱 Currency Converter v1.6.0 Loaded', 
+    console.log('%c💱 Currency Converter v1.6.2 Loaded', 
       'color: #667eea; font-size: 14px; font-weight: bold;');
 
     try {
