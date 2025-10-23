@@ -1805,8 +1805,94 @@
         }
       }
 
+      // 检查鼠标是否真的在文本内容上（而不是元素的空白区域）
+      if (!this.isMouseOverText(event, target)) {
+        return; // 鼠标不在文本上，不显示tooltip
+      }
+
       clearTimeout(this.hideTimer);
       this.showTooltip(target, event);
+    }
+
+    /**
+     * 检查鼠标是否在文本内容上
+     * @param {MouseEvent} event - 鼠标事件
+     * @param {HTMLElement} element - 目标元素
+     * @returns {boolean} 是否在文本上
+     */
+    isMouseOverText(event, element) {
+      try {
+        // 获取元素的边界矩形
+        const rect = element.getBoundingClientRect();
+        const mouseX = event.clientX;
+        const mouseY = event.clientY;
+
+        // 检查鼠标是否在元素边界内
+        if (mouseX < rect.left || mouseX > rect.right || 
+            mouseY < rect.top || mouseY > rect.bottom) {
+          return false;
+        }
+
+        // 创建一个临时的 range 来获取文本的实际宽度
+        const range = document.createRange();
+        const textNodes = this.getTextNodes(element);
+        
+        if (textNodes.length === 0) {
+          // 如果没有文本节点，使用元素的 scrollWidth
+          const textWidth = element.scrollWidth;
+          const paddingLeft = parseFloat(getComputedStyle(element).paddingLeft) || 0;
+          const maxX = rect.left + paddingLeft + textWidth;
+          
+          return mouseX <= maxX;
+        }
+
+        // 选择所有文本内容
+        range.setStart(textNodes[0], 0);
+        range.setEnd(textNodes[textNodes.length - 1], textNodes[textNodes.length - 1].length);
+        
+        // 获取文本的边界矩形
+        const textRect = range.getBoundingClientRect();
+        
+        // 检查鼠标是否在文本区域内（增加5px的容差）
+        const tolerance = 5;
+        return mouseX >= textRect.left - tolerance && 
+               mouseX <= textRect.right + tolerance &&
+               mouseY >= textRect.top - tolerance && 
+               mouseY <= textRect.bottom + tolerance;
+      } catch (error) {
+        // 如果检测失败，默认允许显示tooltip
+        console.warn('[CC] Failed to check mouse position:', error);
+        return true;
+      }
+    }
+
+    /**
+     * 获取元素内的所有文本节点
+     * @param {HTMLElement} element - 目标元素
+     * @returns {Array<Text>} 文本节点数组
+     */
+    getTextNodes(element) {
+      const textNodes = [];
+      const walker = document.createTreeWalker(
+        element,
+        NodeFilter.SHOW_TEXT,
+        {
+          acceptNode: (node) => {
+            // 只接受非空文本节点
+            if (node.textContent.trim().length > 0) {
+              return NodeFilter.FILTER_ACCEPT;
+            }
+            return NodeFilter.FILTER_REJECT;
+          }
+        }
+      );
+
+      let node;
+      while (node = walker.nextNode()) {
+        textNodes.push(node);
+      }
+
+      return textNodes;
     }
 
     /**
