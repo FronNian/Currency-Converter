@@ -5,7 +5,7 @@
 // @name:ja      ✨ユニバーサル通貨コンバーター✨
 // @name:ko      ✨유니버설 통화 변환기✨
 // @namespace    https://greasyfork.org/en/scripts/553280-%E5%85%A8%E8%83%BD%E8%B4%A7%E5%B8%81%E8%BD%AC%E6%8D%A2%E5%99%A8-universal-currency-converter?locale_override=1
-// @version      1.6.3
+// @version      1.6.4
 // @description  智能识别网页价格，鼠标悬停即可查看实时汇率转换。支持57种法币+70种加密货币，API密钥池轮换，智能多语言界面。
 // @description:zh-CN  智能识别网页价格，鼠标悬停即可查看实时汇率转换。支持57种法币+70种加密货币，API密钥池轮换，智能多语言界面。
 // @description:en  Intelligently detect prices on web pages and view real-time currency conversions on hover. Supports 57 fiat + 70 cryptocurrencies, API key rotation, smart multilingual interface.
@@ -2717,6 +2717,16 @@ ${this.i18n.t('config.userCountryCurrency')}: ${this.config.get('userCountryCurr
                   </label>
                 `).join('')}
               </div>
+              
+              <!-- 已选货币排序区域 -->
+              <div id="cc-selected-currencies-section" style="margin-top: 20px; display: none;">
+                <h4 style="font-size: 14px; color: #374151; margin-bottom: 10px;">
+                  📋 已选货币排序 <small style="color: #9ca3af; font-weight: normal;">(拖拽调整显示顺序)</small>
+                </h4>
+                <div id="cc-selected-currencies-list" class="cc-sortable-list">
+                  <!-- 动态生成的已选货币列表 -->
+                </div>
+              </div>
             </div>
 
             <!-- API密钥配置 -->
@@ -2938,7 +2948,15 @@ ${this.i18n.t('config.userCountryCurrency')}: ${this.config.get('userCountryCurr
         if (targetCurrencies.includes(checkbox.value)) {
           checkbox.checked = true;
         }
+        
+        // 添加监听器：当货币选择变化时更新排序列表
+        checkbox.addEventListener('change', () => {
+          this.updateSortableList();
+        });
       });
+      
+      // 初始化排序列表
+      this.updateSortableList();
 
       // 加载API密钥
       const apiKeys = this.config.get('apiKeys');
@@ -3067,6 +3085,151 @@ ${this.i18n.t('config.userCountryCurrency')}: ${this.config.get('userCountryCurr
     }
 
     /**
+     * 更新可排序的货币列表
+     */
+    updateSortableList() {
+      const selectedCurrencies = Array.from(document.querySelectorAll('input[name="cc-currency"]:checked'))
+        .map(cb => cb.value);
+      
+      const section = document.getElementById('cc-selected-currencies-section');
+      const listContainer = document.getElementById('cc-selected-currencies-list');
+      
+      if (selectedCurrencies.length === 0) {
+        section.style.display = 'none';
+        return;
+      }
+      
+      section.style.display = 'block';
+      
+      // 获取当前保存的顺序
+      const currentOrder = this.config.get('targetCurrencies') || [];
+      
+      // 按照当前顺序排列，新添加的货币放在最后
+      const orderedCurrencies = [];
+      currentOrder.forEach(cur => {
+        if (selectedCurrencies.includes(cur)) {
+          orderedCurrencies.push(cur);
+        }
+      });
+      selectedCurrencies.forEach(cur => {
+        if (!orderedCurrencies.includes(cur)) {
+          orderedCurrencies.push(cur);
+        }
+      });
+      
+      // 生成列表
+      listContainer.innerHTML = orderedCurrencies.map((cur, index) => `
+        <div class="cc-sortable-item" data-currency="${cur}" draggable="true">
+          <span class="cc-drag-handle">⋮⋮</span>
+          <span class="cc-currency-code">${cur}</span>
+          <span class="cc-currency-name">${this.getCurrencyName(cur)}</span>
+        </div>
+      `).join('');
+      
+      // 绑定拖拽事件
+      this.attachSortableEvents();
+    }
+
+    /**
+     * 获取货币名称
+     */
+    getCurrencyName(code) {
+      const currencyNames = {
+        'zh-CN': {
+          // 法币
+          'CNY': '人民币', 'USD': '美元', 'EUR': '欧元', 'GBP': '英镑', 'JPY': '日元',
+          'HKD': '港币', 'KRW': '韩元', 'AUD': '澳元', 'CAD': '加元', 'SGD': '新加坡元',
+          'TWD': '新台币', 'THB': '泰铢', 'MYR': '马来西亚林吉特', 'RUB': '卢布', 
+          'CHF': '瑞士法郎', 'SEK': '瑞典克朗', 'NZD': '新西兰元', 'MXN': '墨西哥比索',
+          'INR': '印度卢比', 'BRL': '巴西雷亚尔', 'ZAR': '南非兰特', 'NOK': '挪威克朗',
+          'DKK': '丹麦克朗', 'PLN': '波兰兹罗提', 'TRY': '土耳其里拉', 'IDR': '印尼盾',
+          'PHP': '菲律宾比索', 'VND': '越南盾', 'AED': '阿联酋迪拉姆', 'SAR': '沙特里亚尔',
+          // 加密货币
+          'BTC': '比特币', 'ETH': '以太坊', 'USDT': '泰达币', 'BNB': '币安币', 
+          'SOL': 'Solana', 'XRP': '瑞波币', 'USDC': 'USD Coin', 'ADA': '艾达币',
+          'DOGE': '狗狗币', 'TRX': '波场', 'DOT': '波卡', 'MATIC': 'Polygon',
+          'UNI': 'Uniswap', 'LINK': 'Chainlink', 'SHIB': '柴犬币', 'AVAX': '雪崩'
+        },
+        'en': {
+          // Fiat
+          'CNY': 'Chinese Yuan', 'USD': 'US Dollar', 'EUR': 'Euro', 'GBP': 'British Pound', 'JPY': 'Japanese Yen',
+          'HKD': 'Hong Kong Dollar', 'KRW': 'South Korean Won', 'AUD': 'Australian Dollar', 'CAD': 'Canadian Dollar',
+          'SGD': 'Singapore Dollar', 'TWD': 'Taiwan Dollar', 'THB': 'Thai Baht', 'MYR': 'Malaysian Ringgit',
+          'RUB': 'Russian Ruble', 'CHF': 'Swiss Franc', 'SEK': 'Swedish Krona', 'NZD': 'New Zealand Dollar',
+          'MXN': 'Mexican Peso', 'INR': 'Indian Rupee', 'BRL': 'Brazilian Real', 'ZAR': 'South African Rand',
+          'NOK': 'Norwegian Krone', 'DKK': 'Danish Krone', 'PLN': 'Polish Zloty', 'TRY': 'Turkish Lira',
+          'IDR': 'Indonesian Rupiah', 'PHP': 'Philippine Peso', 'VND': 'Vietnamese Dong', 'AED': 'UAE Dirham',
+          'SAR': 'Saudi Riyal',
+          // Crypto
+          'BTC': 'Bitcoin', 'ETH': 'Ethereum', 'USDT': 'Tether', 'BNB': 'Binance Coin', 'SOL': 'Solana',
+          'XRP': 'Ripple', 'USDC': 'USD Coin', 'ADA': 'Cardano', 'DOGE': 'Dogecoin', 'TRX': 'TRON',
+          'DOT': 'Polkadot', 'MATIC': 'Polygon', 'UNI': 'Uniswap', 'LINK': 'Chainlink', 'SHIB': 'Shiba Inu',
+          'AVAX': 'Avalanche'
+        },
+        'ja': {
+          'CNY': '中国人民元', 'USD': '米ドル', 'EUR': 'ユーロ', 'GBP': '英ポンド', 'JPY': '日本円',
+          'HKD': '香港ドル', 'KRW': '韓国ウォン', 'AUD': '豪ドル', 'CAD': 'カナダドル',
+          'BTC': 'ビットコイン', 'ETH': 'イーサリアム'
+        }
+      };
+
+      const lang = this.i18n.currentLanguage;
+      const names = currencyNames[lang] || currencyNames['en'];
+      return names[code] || code;
+    }
+
+    /**
+     * 绑定拖拽排序事件
+     */
+    attachSortableEvents() {
+      const items = document.querySelectorAll('.cc-sortable-item');
+      let draggedItem = null;
+      
+      items.forEach(item => {
+        item.addEventListener('dragstart', (e) => {
+          draggedItem = item;
+          item.classList.add('cc-dragging');
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/html', item.innerHTML);
+        });
+        
+        item.addEventListener('dragend', (e) => {
+          item.classList.remove('cc-dragging');
+          items.forEach(i => i.classList.remove('cc-drag-over'));
+        });
+        
+        item.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          
+          if (draggedItem === item) return;
+          
+          const listContainer = document.getElementById('cc-selected-currencies-list');
+          const items = Array.from(listContainer.querySelectorAll('.cc-sortable-item'));
+          const draggedIndex = items.indexOf(draggedItem);
+          const targetIndex = items.indexOf(item);
+          
+          if (draggedIndex < targetIndex) {
+            item.parentNode.insertBefore(draggedItem, item.nextSibling);
+          } else {
+            item.parentNode.insertBefore(draggedItem, item);
+          }
+        });
+        
+        item.addEventListener('dragenter', (e) => {
+          e.preventDefault();
+          if (draggedItem !== item) {
+            item.classList.add('cc-drag-over');
+          }
+        });
+        
+        item.addEventListener('dragleave', (e) => {
+          item.classList.remove('cc-drag-over');
+        });
+      });
+    }
+
+    /**
      * 保存设置
      */
     saveSettings() {
@@ -3077,9 +3240,12 @@ ${this.i18n.t('config.userCountryCurrency')}: ${this.config.get('userCountryCurr
       const inlineMode = document.getElementById('cc-inline-mode').checked;
       const inlineCurrency = document.getElementById('cc-inline-currency').value;
 
-      // 获取选中的货币
-      const selectedCurrencies = Array.from(document.querySelectorAll('input[name="cc-currency"]:checked'))
-        .map(cb => cb.value);
+      // 获取排序后的货币列表（从排序区域获取）
+      const sortedItems = Array.from(document.querySelectorAll('.cc-sortable-item'));
+      const selectedCurrencies = sortedItems.length > 0 
+        ? sortedItems.map(item => item.dataset.currency)
+        : Array.from(document.querySelectorAll('input[name="cc-currency"]:checked'))
+            .map(cb => cb.value);
 
       // 验证货币选择
       if (selectedCurrencies.length < 2) {
@@ -3504,6 +3670,66 @@ ${this.i18n.t('config.userCountryCurrency')}: ${this.config.get('userCountryCurr
 
         .cc-currency-option:has(input:checked) span {
           color: white;
+        }
+
+        /* 可排序货币列表 */
+        .cc-sortable-list {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .cc-sortable-item {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 12px 16px;
+          background: white;
+          border: 2px solid #e5e7eb;
+          border-radius: 8px;
+          cursor: move;
+          transition: all 0.2s;
+          user-select: none;
+        }
+
+        .cc-sortable-item:hover {
+          border-color: #667eea;
+          box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+          transform: translateY(-1px);
+        }
+
+        .cc-sortable-item.cc-dragging {
+          opacity: 0.5;
+          transform: scale(0.95);
+        }
+
+        .cc-sortable-item.cc-drag-over {
+          border-color: #667eea;
+          border-style: dashed;
+        }
+
+        .cc-drag-handle {
+          font-size: 16px;
+          color: #9ca3af;
+          cursor: grab;
+          padding: 4px;
+        }
+
+        .cc-drag-handle:active {
+          cursor: grabbing;
+        }
+
+        .cc-currency-code {
+          font-weight: bold;
+          color: #374151;
+          font-size: 14px;
+          min-width: 50px;
+        }
+
+        .cc-currency-name {
+          color: #6b7280;
+          font-size: 13px;
+          flex: 1;
         }
 
         .cc-settings-footer {
@@ -4281,7 +4507,7 @@ ${this.i18n.t('config.userCountryCurrency')}: ${this.config.get('userCountryCurr
    * 主初始化函数
    */
   function init() {
-    console.log('%c💱 Currency Converter v1.6.3 Loaded', 
+    console.log('%c💱 Currency Converter v1.6.4 Loaded', 
       'color: #667eea; font-size: 14px; font-weight: bold;');
 
     try {
