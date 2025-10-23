@@ -5,7 +5,7 @@
 // @name:ja      ✨ユニバーサル通貨コンバーター✨
 // @name:ko      ✨유니버설 통화 변환기✨
 // @namespace    https://greasyfork.org/en/scripts/553280-%E5%85%A8%E8%83%BD%E8%B4%A7%E5%B8%81%E8%BD%AC%E6%8D%A2%E5%99%A8-universal-currency-converter?locale_override=1
-// @version      1.6.4
+// @version      1.6.5
 // @description  智能识别网页价格，鼠标悬停即可查看实时汇率转换。支持57种法币+70种加密货币，API密钥池轮换，智能多语言界面。
 // @description:zh-CN  智能识别网页价格，鼠标悬停即可查看实时汇率转换。支持57种法币+70种加密货币，API密钥池轮换，智能多语言界面。
 // @description:en  Intelligently detect prices on web pages and view real-time currency conversions on hover. Supports 57 fiat + 70 cryptocurrencies, API key rotation, smart multilingual interface.
@@ -1554,6 +1554,54 @@
         return false;
       }
 
+      // 货币代码白名单验证
+      if (!this.isValidCurrency(priceData.currency, priceData.isCrypto)) {
+        console.log(`[CC] Invalid currency code: ${priceData.currency}`);
+        return false;
+      }
+
+      // 排除版本号、编号等关键词
+      const excludeKeywords = [
+        'JDK', 'SDK', 'API', 'JRE', 'JVM', 'IDE', 'SQL', 'HTML', 'CSS', 'PHP', 'XML', 'JSON',
+        'HTTP', 'HTTPS', 'FTP', 'SSH', 'SSL', 'TLS', 'DNS', 'TCP', 'UDP', 'SMTP', 'POP', 'IMAP',
+        'PDF', 'DOC', 'PPT', 'XLS', 'ZIP', 'RAR', 'ISO', 'IMG', 'EXE', 'DLL', 'SYS',
+        'CPU', 'GPU', 'RAM', 'SSD', 'HDD', 'USB', 'VGA', 'HDMI', 'WIFI', 'LTE',
+        'IOS', 'MAC', 'WIN', 'APP', 'WEB', 'NET', 'ORG', 'COM', 'EDU', 'GOV',
+        'VPN', 'CDN', 'CMS', 'CRM', 'ERP', 'SaaS', 'PaaS', 'IaaS',
+        'RGB', 'CMYK', 'PNG', 'JPG', 'GIF', 'SVG', 'MP3', 'MP4', 'AVI', 'MKV',
+        'GMT', 'UTC', 'PST', 'EST', 'CST', 'BST', 'JST', 'KST'
+      ];
+      
+      const normalizedCurrency = this.normalizeCurrency(priceData.currency);
+      if (excludeKeywords.includes(normalizedCurrency)) {
+        console.log(`[CC] Excluded keyword: ${normalizedCurrency}`);
+        return false;
+      }
+
+      // 检查上下文：排除包含版本、编号相关的词汇
+      const context = priceData.originalText || '';
+      const versionPatterns = [
+        /\bv\d+(\.\d+)?/i,           // v1.0, V2.0
+        /版本|version/i,              // 版本、version
+        /\bspring\s+boot\b/i,        // Spring Boot
+        /\bmaven\b/i,                // Maven
+        /\bgradle\b/i,               // Gradle
+        /\bnpm\b/i,                  // NPM
+        /\bnode\b/i,                 // Node
+        /\bpython\b/i,               // Python
+        /\bjava\b/i,                 // Java
+        /\bjavascript\b/i,           // JavaScript
+        /\btypescript\b/i,           // TypeScript
+        /分支|branch/i               // 分支、branch
+      ];
+      
+      for (const pattern of versionPatterns) {
+        if (pattern.test(context)) {
+          console.log(`[CC] Excluded by context pattern: ${pattern}`);
+          return false;
+        }
+      }
+
       // 排除明显的日期格式（如 2024.10.21）
       if (priceData.amount > 1000 && priceData.amount < 9999) {
         const str = priceData.originalText;
@@ -1568,6 +1616,47 @@
       }
 
       return true;
+    }
+
+    /**
+     * 验证货币代码是否有效
+     * @param {string} currency - 货币代码
+     * @param {boolean} isCrypto - 是否为加密货币
+     * @returns {boolean} 是否有效
+     */
+    isValidCurrency(currency, isCrypto = false) {
+      const normalizedCurrency = this.normalizeCurrency(currency);
+      
+      // 加密货币白名单
+      if (isCrypto) {
+        const cryptoList = [
+          'BTC', 'ETH', 'USDT', 'BNB', 'SOL', 'XRP', 'USDC', 'ADA', 'DOGE', 'TRX',
+          'DOT', 'MATIC', 'LTC', 'SHIB', 'DAI', 'AVAX', 'UNI', 'LINK', 'ATOM', 'XLM',
+          'OKB', 'BCH', 'XMR', 'ETC', 'FIL', 'APT', 'ARB', 'OP', 'NEAR', 'VET',
+          'ALGO', 'GRT', 'SAND', 'MANA', 'AXS', 'FTM', 'THETA', 'XTZ', 'EOS', 'EGLD',
+          'AAVE', 'BSV', 'FLOW', 'ICP', 'ZEC', 'MKR', 'SNX', 'NEO', 'KLAY', 'CRV',
+          'BUSD', 'TUSD', 'USDP', 'FRAX', 'CAKE', 'SUSHI', 'COMP', 'YFI', 'STRK', 'IMX',
+          'LRC', 'HBAR', 'QNT', 'RUNE', 'GALA', 'CHZ'
+        ];
+        return cryptoList.includes(normalizedCurrency);
+      }
+      
+      // 法币白名单（ISO 4217 + 常见符号）
+      const fiatList = [
+        'USD', 'EUR', 'GBP', 'JPY', 'CNY', 'CHF', 'CAD', 'AUD', 'NZD', 'HKD',
+        'SGD', 'SEK', 'NOK', 'DKK', 'KRW', 'INR', 'RUB', 'BRL', 'ZAR', 'MXN',
+        'TRY', 'TWD', 'THB', 'IDR', 'MYR', 'PHP', 'PLN', 'CZK', 'HUF', 'ILS',
+        'AED', 'SAR', 'QAR', 'KWD', 'BHD', 'OMR', 'JOD', 'EGP', 'MAD', 'DZD',
+        'TND', 'NGN', 'GHS', 'KES', 'TZS', 'UGX', 'ZMW', 'BWP', 'MUR', 'SCR',
+        'VND', 'MMK', 'KHR', 'LAK', 'BDT', 'PKR', 'LKR', 'NPR', 'AFN', 'IRR',
+        'IQD', 'SYP', 'LBP', 'JMD', 'TTD', 'BSD', 'BBD', 'XCD', 'AWG', 'ANG',
+        // 货币符号
+        '$', '¥', '€', '£', '₹', '₩', '₱', '₦', '₪', '₴', '₽', '฿', '₡', '₵', '₸', '₺', '₼', '₾',
+        // 多字符符号
+        'US$', 'HK$', 'NT$', 'NZ$', 'CA$', 'AU$', 'S$', 'R$', 'A$', 'Rp', 'Rs', 'Rs.'
+      ];
+      
+      return fiatList.includes(normalizedCurrency);
     }
 
     /**
@@ -4507,7 +4596,7 @@ ${this.i18n.t('config.userCountryCurrency')}: ${this.config.get('userCountryCurr
    * 主初始化函数
    */
   function init() {
-    console.log('%c💱 Currency Converter v1.6.4 Loaded', 
+    console.log('%c💱 Currency Converter v1.6.5 Loaded', 
       'color: #667eea; font-size: 14px; font-weight: bold;');
 
     try {
