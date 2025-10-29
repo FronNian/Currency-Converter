@@ -5,7 +5,7 @@
 // @name:ja      ✨ユニバーサル通貨コンバーター✨
 // @name:ko      ✨유니버설 통화 변환기✨
 // @namespace    https://greasyfork.org/en/scripts/553280-%E5%85%A8%E8%83%BD%E8%B4%A7%E5%B8%81%E8%BD%AC%E6%8D%A2%E5%99%A8-universal-currency-converter?locale_override=1
-// @version      1.6.8
+// @version      1.7.1
 // @description  智能识别网页价格，鼠标悬停即可查看实时汇率转换。支持57种法币+70种加密货币，API密钥池轮换，智能多语言界面。
 // @description:zh-CN  智能识别网页价格，鼠标悬停即可查看实时汇率转换。支持57种法币+70种加密货币，API密钥池轮换，智能多语言界面。
 // @description:en  Intelligently detect prices on web pages and view real-time currency conversions on hover. Supports 57 fiat + 70 cryptocurrencies, API key rotation, smart multilingual interface.
@@ -14,6 +14,281 @@
 // @author       FronNian
 // @copyright    2025, FronNian (huayuan4564@gmail.com)
 // @match        *://*/*
+// @match        *://*.youtube.com/*
+// @match        *://*.twitch.tv/*
+// @match        *://*.bilibili.com/*
+// @match        *://*.douyin.com/*
+// @match        *://*.tiktok.com/*
+// @match        *://*.kuaishou.com/*
+// @match        *://*.gifshow.com/*
+// @match        *://*.huya.com/*
+// @match        *://*.douyu.com/*
+// @match        *://*.xiaohongshu.com/*
+// @match        *://*.xhslink.com/*
+// @match        *://*.netflix.com/*
+// @match        *://*.primevideo.com/*
+// @match        *://*.disneyplus.com/*
+// @match        *://*.hulu.com/*
+// @match        *://*.kick.com/*
+// @match        *://*.rumble.com/*
+// @match        *://*.vimeo.com/*
+// @match        *://*.dailymotion.com/*
+// @match        *://*.nicovideo.jp/*
+// @match        *://*.afreecatv.com/*
+// @match        *://*.naver.com/*
+// @match        *://*.youku.com/*
+// @match        *://*.iqiyi.com/*
+// @match        *://*.qq.com/*
+// @match        *://*.mgtv.com/*
+// @match        *://*.acfun.cn/*
+// @match        *://*.weibo.com/*
+// @match        *://*.weishi.qq.com/*
+// @match        *://*.huoshan.com/*
+// @match        *://*.ixigua.com/*
+// @match        *://*.v.qq.com/*
+// @match        *://*.live.com/*
+// @match        *://*.mixer.com/*
+// @match        *://*.facebook.com/*
+// @match        *://*.instagram.com/*
+// @match        *://*.twitter.com/*
+// @match        *://*.x.com/*
+// @match        *://*.amazon.com/*
+// @match        *://*.amazon.cn/*
+// @match        *://*.amazon.co.jp/*
+// @match        *://*.amazon.co.uk/*
+// @match        *://*.amazon.de/*
+// @match        *://*.amazon.fr/*
+// @match        *://*.ebay.com/*
+// @match        *://*.aliexpress.com/*
+// @match        *://*.taobao.com/*
+// @match        *://*.tmall.com/*
+// @match        *://*.jd.com/*
+// @match        *://*.pinduoduo.com/*
+// @match        *://*.shopify.com/*
+// @match        *://*.etsy.com/*
+// @match        *://*.walmart.com/*
+// @match        *://*.bestbuy.com/*
+// @match        *://*.target.com/*
+// @match        *://*.steam.com/*
+// @match        *://*.epicgames.com/*
+// @match        *://*.playstation.com/*
+// @match        *://*.xbox.com/*
+// @match        *://*.nintendo.com/*
+// @match        *://*.coinmarketcap.com/*
+// @match        *://*.coingecko.com/*
+// @match        *://*.binance.com/*
+// @match        *://*.coinbase.com/*
+// @match        *://*.kraken.com/*
+// @match        *://*.booking.com/*
+// @match        *://*.airbnb.com/*
+// @match        *://*.expedia.com/*
+// @match        *://*.trip.com/*
+// @match        *://*.ctrip.com/*
+// @match        *://*.agoda.com/*
+// @match        *://*.hotels.com/*
+// @match        *://*.priceline.com/*
+// @match        *://*.kayak.com/*
+// @match        *://*.trivago.com/*
+// @match        *://*.skyscanner.com/*
+// @match        *://*.momondo.com/*
+// @match        *://*.hotwire.com/*
+// @match        *://*.orbitz.com/*
+// @match        *://*.travelocity.com/*
+// @match        *://*.cheaptickets.com/*
+// @match        *://*.marriott.com/*
+// @match        *://*.hilton.com/*
+// @match        *://*.hyatt.com/*
+// @match        *://*.ihg.com/*
+// @match        *://*.accor.com/*
+// @match        *://*.radisson.com/*
+// @match        *://*.wyndham.com/*
+// @match        *://*.choicehotels.com/*
+// @match        *://*.bestwestern.com/*
+// @match        *://*.hostelworld.com/*
+// @match        *://*.hostelbookers.com/*
+// @match        *://*.vrbo.com/*
+// @match        *://*.vacationrentals.com/*
+// @match        *://*.homeaway.com/*
+// @match        *://*.flipkey.com/*
+// @match        *://*.tripadvisor.com/*
+// @match        *://*.yelp.com/*
+// @match        *://*.opentable.com/*
+// @match        *://*.rentalcars.com/*
+// @match        *://*.enterprise.com/*
+// @match        *://*.hertz.com/*
+// @match        *://*.avis.com/*
+// @match        *://*.budget.com/*
+// @match        *://*.europcar.com/*
+// @match        *://*.sixt.com/*
+// @match        *://*.thrifty.com/*
+// @match        *://*.alamo.com/*
+// @match        *://*.dollar.com/*
+// @match        *://*.national.com/*
+// @match        *://*.viator.com/*
+// @match        *://*.getyourguide.com/*
+// @match        *://*.klook.com/*
+// @match        *://*.tiqets.com/*
+// @match        *://*.musement.com/*
+// @match        *://*.trainline.com/*
+// @match        *://*.rome2rio.com/*
+// @match        *://*.omio.com/*
+// @match        *://*.12306.cn/*
+// @match        *://*.qunar.com/*
+// @match        *://*.elong.com/*
+// @match        *://*.tuniu.com/*
+// @match        *://*.lvmama.com/*
+// @match        *://*.mafengwo.cn/*
+// @match        *://*.qyer.com/*
+// @match        *://*.meituan.com/*
+// @match        *://*.dianping.com/*
+// @match        *://*.fliggy.com/*
+// @match        *://*.alitrip.com/*
+// @match        *://*.aws.amazon.com/*
+// @match        *://*.console.aws.amazon.com/*
+// @match        *://*.cloud.google.com/*
+// @match        *://*.console.cloud.google.com/*
+// @match        *://*.azure.microsoft.com/*
+// @match        *://*.portal.azure.com/*
+// @match        *://*.digitalocean.com/*
+// @match        *://*.vultr.com/*
+// @match        *://*.linode.com/*
+// @match        *://*.hetzner.com/*
+// @match        *://*.ovh.com/*
+// @match        *://*.ovhcloud.com/*
+// @match        *://*.cloudflare.com/*
+// @match        *://*.heroku.com/*
+// @match        *://*.vercel.com/*
+// @match        *://*.netlify.com/*
+// @match        *://*.railway.app/*
+// @match        *://*.render.com/*
+// @match        *://*.fly.io/*
+// @match        *://*.aliyun.com/*
+// @match        *://*.cloud.tencent.com/*
+// @match        *://*.console.cloud.tencent.com/*
+// @match        *://*.huaweicloud.com/*
+// @match        *://*.console.huaweicloud.com/*
+// @match        *://*.cloud.baidu.com/*
+// @match        *://*.ucloud.cn/*
+// @match        *://*.qiniu.com/*
+// @match        *://*.upyun.com/*
+// @match        *://*.qcloud.com/*
+// @match        *://*.bandwagonhost.com/*
+// @match        *://*.bwh88.net/*
+// @match        *://*.kiwivm.64clouds.com/*
+// @match        *://*.virmach.com/*
+// @match        *://*.hostwinds.com/*
+// @match        *://*.contabo.com/*
+// @match        *://*.racknerd.com/*
+// @match        *://*.hosthatch.com/*
+// @match        *://*.buyvm.net/*
+// @match        *://*.namecheap.com/*
+// @match        *://*.godaddy.com/*
+// @match        *://*.bluehost.com/*
+// @match        *://*.hostgator.com/*
+// @match        *://*.siteground.com/*
+// @match        *://*.dreamhost.com/*
+// @match        *://*.a2hosting.com/*
+// @match        *://*.inmotion.com/*
+// @match        *://*.greengeeks.com/*
+// @match        *://*.spotify.com/*
+// @match        *://*.apple.com/*
+// @match        *://*.icloud.com/*
+// @match        *://*.adobe.com/*
+// @match        *://*.creativecloud.com/*
+// @match        *://*.microsoft.com/*
+// @match        *://*.office.com/*
+// @match        *://*.office365.com/*
+// @match        *://*.canva.com/*
+// @match        *://*.figma.com/*
+// @match        *://*.notion.so/*
+// @match        *://*.notion.site/*
+// @match        *://*.slack.com/*
+// @match        *://*.discord.com/*
+// @match        *://*.zoom.us/*
+// @match        *://*.dropbox.com/*
+// @match        *://*.onedrive.live.com/*
+// @match        *://*.box.com/*
+// @match        *://*.mega.nz/*
+// @match        *://*.pcloud.com/*
+// @match        *://*.sync.com/*
+// @match        *://*.nordvpn.com/*
+// @match        *://*.expressvpn.com/*
+// @match        *://*.surfshark.com/*
+// @match        *://*.protonvpn.com/*
+// @match        *://*.cyberghostvpn.com/*
+// @match        *://*.privateinternetaccess.com/*
+// @match        *://*.ipvanish.com/*
+// @match        *://*.tunnelbear.com/*
+// @match        *://*.udemy.com/*
+// @match        *://*.coursera.org/*
+// @match        *://*.edx.org/*
+// @match        *://*.skillshare.com/*
+// @match        *://*.linkedin.com/*
+// @match        *://*.pluralsight.com/*
+// @match        *://*.datacamp.com/*
+// @match        *://*.codecademy.com/*
+// @match        *://*.udacity.com/*
+// @match        *://*.domestika.com/*
+// @match        *://*.masterclass.com/*
+// @match        *://*.grammarly.com/*
+// @match        *://*.quillbot.com/*
+// @match        *://*.overleaf.com/*
+// @match        *://*.medium.com/*
+// @match        *://*.substack.com/*
+// @match        *://*.patreon.com/*
+// @match        *://*.buymeacoffee.com/*
+// @match        *://*.ko-fi.com/*
+// @match        *://*.github.com/*
+// @match        *://*.gitlab.com/*
+// @match        *://*.bitbucket.org/*
+// @match        *://*.jira.atlassian.com/*
+// @match        *://*.trello.com/*
+// @match        *://*.asana.com/*
+// @match        *://*.monday.com/*
+// @match        *://*.clickup.com/*
+// @match        *://*.airtable.com/*
+// @match        *://*.coda.io/*
+// @match        *://*.evernote.com/*
+// @match        *://*.onenote.com/*
+// @match        *://*.goodnotes.com/*
+// @match        *://*.bear.app/*
+// @match        *://*.obsidian.md/*
+// @match        *://*.roamresearch.com/*
+// @match        *://*.todoist.com/*
+// @match        *://*.any.do/*
+// @match        *://*.ticktick.com/*
+// @match        *://*.chatgpt.com/*
+// @match        *://*.openai.com/*
+// @match        *://*.anthropic.com/*
+// @match        *://*.claude.ai/*
+// @match        *://*.midjourney.com/*
+// @match        *://*.stability.ai/*
+// @match        *://*.fireflies.ai/*
+// @match        *://*.otter.ai/*
+// @match        *://*.jasper.ai/*
+// @match        *://*.copy.ai/*
+// @match        *://*.writesonic.com/*
+// @match        *://*.rytr.me/*
+// @match        *://*.mailchimp.com/*
+// @match        *://*.sendinblue.com/*
+// @match        *://*.constantcontact.com/*
+// @match        *://*.activecampaign.com/*
+// @match        *://*.convertkit.com/*
+// @match        *://*.calendly.com/*
+// @match        *://*.acuityscheduling.com/*
+// @match        *://*.setmore.com/*
+// @match        *://*.zapier.com/*
+// @match        *://*.ifttt.com/*
+// @match        *://*.make.com/*
+// @match        *://*.integromat.com/*
+// @match        *://*.semrush.com/*
+// @match        *://*.ahrefs.com/*
+// @match        *://*.moz.com/*
+// @match        *://*.similarweb.com/*
+// @match        *://*.hotjar.com/*
+// @match        *://*.crazyegg.com/*
+// @match        *://*.optimizely.com/*
+// @match        *://*.vwo.com/*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
 // @grant        GM_setValue
@@ -156,7 +431,7 @@
     cryptoApiKey: '',  // CoinGecko Pro API Key (可选，免费版无需)
     
     // UI配置
-    tooltipDelay: 300,       // 工具提示显示延迟（毫秒）
+    tooltipDelay: 500,       // 工具提示显示延迟（毫秒，推荐300-800）
     tooltipTheme: 'gradient', // 工具提示主题：gradient | light | dark
     
     // 性能配置
@@ -3035,6 +3310,22 @@ ${this.i18n.t('config.userCountryCurrency')}: ${this.config.get('userCountryCurr
               </div>
 
               <div class="cc-setting-group">
+                <label>
+                  <strong>⏱️ 弹窗延迟时间</strong>
+                </label>
+                <small style="display: block; margin-bottom: 8px; color: #6b7280;">
+                  鼠标悬停多久后显示弹窗（毫秒）。时间越长，越不容易误触发。
+                </small>
+                <select id="cc-tooltip-delay">
+                  <option value="100">极快 (100ms)</option>
+                  <option value="300">快速 (300ms)</option>
+                  <option value="500">适中 (500ms) 推荐</option>
+                  <option value="700">稳定 (700ms)</option>
+                  <option value="1000">缓慢 (1000ms)</option>
+                </select>
+              </div>
+
+              <div class="cc-setting-group">
                 <label class="cc-checkbox-label">
                   <input type="checkbox" id="cc-inline-mode" />
                   <span><strong>${this.i18n.t('settings.inlineMode')}</strong></span>
@@ -3291,6 +3582,12 @@ ${this.i18n.t('config.userCountryCurrency')}: ${this.config.get('userCountryCurr
       }
       if (inlineCurrency) {
         inlineCurrency.value = this.config.get('inlineShowCurrency') || 'CNY';
+      }
+      
+      // 加载弹窗延迟设置
+      const tooltipDelay = document.getElementById('cc-tooltip-delay');
+      if (tooltipDelay) {
+        tooltipDelay.value = this.config.get('tooltipDelay') || 500;
       }
 
       // 加载目标货币
@@ -3589,6 +3886,7 @@ ${this.i18n.t('config.userCountryCurrency')}: ${this.config.get('userCountryCurr
       const autoDetect = document.getElementById('cc-auto-detect').checked;
       const excludeSource = document.getElementById('cc-exclude-source').checked;
       const maxDisplay = parseInt(document.getElementById('cc-max-display').value);
+      const tooltipDelay = parseInt(document.getElementById('cc-tooltip-delay').value);
       const inlineMode = document.getElementById('cc-inline-mode').checked;
       const inlineCurrency = document.getElementById('cc-inline-currency').value;
 
@@ -3691,6 +3989,7 @@ ${this.i18n.t('config.userCountryCurrency')}: ${this.config.get('userCountryCurr
         autoDetectLocation: autoDetect,
         excludeSourceCurrency: excludeSource,
         maxDisplayCurrencies: maxDisplay,
+        tooltipDelay: tooltipDelay,
         inlineMode: inlineMode,
         inlineShowCurrency: inlineCurrency,
         enableCustomRates: enableCustomRates,
@@ -4858,8 +5157,8 @@ ${this.i18n.t('config.userCountryCurrency')}: ${this.config.get('userCountryCurr
   /**
    * 主初始化函数
    */
-  function init() {
-    console.log('%c💱 Currency Converter v1.6.8 Loaded', 
+    function init() {
+      console.log('%c💱 Currency Converter v1.7.1 Loaded',
       'color: #667eea; font-size: 14px; font-weight: bold;');
 
     try {
