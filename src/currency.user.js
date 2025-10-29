@@ -5,7 +5,7 @@
 // @name:ja      ✨ユニバーサル通貨コンバーター✨
 // @name:ko      ✨유니버설 통화 변환기✨
 // @namespace    https://greasyfork.org/en/scripts/553280-%E5%85%A8%E8%83%BD%E8%B4%A7%E5%B8%81%E8%BD%AC%E6%8D%A2%E5%99%A8-universal-currency-converter?locale_override=1
-// @version      1.7.1
+// @version      1.7.2
 // @description  智能识别网页价格，鼠标悬停即可查看实时汇率转换。支持57种法币+70种加密货币，API密钥池轮换，智能多语言界面。
 // @description:zh-CN  智能识别网页价格，鼠标悬停即可查看实时汇率转换。支持57种法币+70种加密货币，API密钥池轮换，智能多语言界面。
 // @description:en  Intelligently detect prices on web pages and view real-time currency conversions on hover. Supports 57 fiat + 70 cryptocurrencies, API key rotation, smart multilingual interface.
@@ -74,6 +74,45 @@
 // @match        *://*.playstation.com/*
 // @match        *://*.xbox.com/*
 // @match        *://*.nintendo.com/*
+// @match        *://*.gog.com/*
+// @match        *://*.origin.com/*
+// @match        *://*.ea.com/*
+// @match        *://*.ubisoft.com/*
+// @match        *://*.ubisoftconnect.com/*
+// @match        *://*.battle.net/*
+// @match        *://*.blizzard.com/*
+// @match        *://*.riotgames.com/*
+// @match        *://*.leagueoflegends.com/*
+// @match        *://*.valorant.com/*
+// @match        *://*.humblebundle.com/*
+// @match        *://*.fanatical.com/*
+// @match        *://*.greenmangaming.com/*
+// @match        *://*.cdkeys.com/*
+// @match        *://*.kinguin.net/*
+// @match        *://*.g2a.com/*
+// @match        *://*.gamersgate.com/*
+// @match        *://*.indiegala.com/*
+// @match        *://*.itch.io/*
+// @match        *://*.gamebillet.com/*
+// @match        *://*.gamesplanet.com/*
+// @match        *://*.nuuvem.com/*
+// @match        *://*.dlgamer.com/*
+// @match        *://*.wingamestore.com/*
+// @match        *://*.gamestop.com/*
+// @match        *://*.playasia.com/*
+// @match        *://*.razer.com/*
+// @match        *://*.logitechg.com/*
+// @match        *://*.corsair.com/*
+// @match        *://*.nzxt.com/*
+// @match        *://*.game.qq.com/*
+// @match        *://*.wegame.com/*
+// @match        *://*.tgp.qq.com/*
+// @match        *://*.yx.tv/*
+// @match        *://*.youxi.com/*
+// @match        *://*.3dmgame.com/*
+// @match        *://*.ali213.net/*
+// @match        *://*.gamersky.com/*
+// @match        *://*.3dm.com/*
 // @match        *://*.coinmarketcap.com/*
 // @match        *://*.coingecko.com/*
 // @match        *://*.binance.com/*
@@ -5158,7 +5197,7 @@ ${this.i18n.t('config.userCountryCurrency')}: ${this.config.get('userCountryCurr
    * 主初始化函数
    */
     function init() {
-      console.log('%c💱 Currency Converter v1.7.1 Loaded',
+      console.log('%c💱 Currency Converter v1.7.2 Loaded',
       'color: #667eea; font-size: 14px; font-weight: bold;');
 
     try {
