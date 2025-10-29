@@ -5,7 +5,7 @@
 // @name:ja      ✨ユニバーサル通貨コンバーター✨
 // @name:ko      ✨유니버설 통화 변환기✨
 // @namespace    https://greasyfork.org/en/scripts/553280-%E5%85%A8%E8%83%BD%E8%B4%A7%E5%B8%81%E8%BD%AC%E6%8D%A2%E5%99%A8-universal-currency-converter?locale_override=1
-// @version      1.6.5
+// @version      1.6.6
 // @description  智能识别网页价格，鼠标悬停即可查看实时汇率转换。支持57种法币+70种加密货币，API密钥池轮换，智能多语言界面。
 // @description:zh-CN  智能识别网页价格，鼠标悬停即可查看实时汇率转换。支持57种法币+70种加密货币，API密钥池轮换，智能多语言界面。
 // @description:en  Intelligently detect prices on web pages and view real-time currency conversions on hover. Supports 57 fiat + 70 cryptocurrencies, API key rotation, smart multilingual interface.
@@ -1713,8 +1713,12 @@
           try {
             const priceData = this.extractPriceData(match, patternDef);
             if (this.validatePrice(priceData)) {
-              // 标记容器元素，而不是文本节点的父元素
-              this.markElement(container, priceData);
+              // 尝试找到包含价格文本的最小子元素
+              const preciseElement = this.findElementByText(container, priceData.originalText);
+              const targetElement = preciseElement || container;
+              
+              // 标记元素
+              this.markElement(targetElement, priceData);
               return true;
             }
           } catch (error) {
@@ -1724,6 +1728,49 @@
       }
       
       return false;
+    }
+    
+    /**
+     * 根据文本内容查找最小的包含元素
+     * @param {HTMLElement} container - 容器元素
+     * @param {string} searchText - 要查找的文本
+     * @returns {HTMLElement|null} 找到的元素或null
+     */
+    findElementByText(container, searchText) {
+      if (!container || !searchText) return null;
+      
+      try {
+        // 递归查找包含文本的最小元素
+        const children = Array.from(container.children);
+        
+        for (const child of children) {
+          if (child.textContent.includes(searchText)) {
+            // 如果子元素包含文本，继续向下查找
+            const deeper = this.findElementByText(child, searchText);
+            if (deeper) return deeper;
+            
+            // 如果子元素的文本长度接近搜索文本，返回它
+            const textLength = child.textContent.trim().length;
+            const searchLength = searchText.length;
+            if (textLength > 0 && textLength <= searchLength * 3) {
+              return child;
+            }
+          }
+        }
+        
+        // 如果没有更小的子元素，检查容器本身
+        if (container.textContent.includes(searchText)) {
+          const textLength = container.textContent.trim().length;
+          const searchLength = searchText.length;
+          if (textLength > 0 && textLength <= searchLength * 3) {
+            return container;
+          }
+        }
+        
+        return null;
+      } catch (error) {
+        return null;
+      }
     }
 
     /**
@@ -1735,18 +1782,75 @@
       if (!element || this.detectedElements.has(element)) return;
 
       try {
-        element.dataset.ccOriginalPrice = priceData.amount;
-        element.dataset.ccCurrency = priceData.currency;
-        element.dataset.ccIsCrypto = priceData.isCrypto ? 'true' : 'false';
-        element.classList.add('cc-price-detected');
-        this.detectedElements.set(element, priceData);
+        // 尝试找到更精确的价格元素（避免标记过大的容器）
+        const preciseElement = this.findPrecisePriceElement(element, priceData.originalText);
+        const targetElement = preciseElement || element;
+        
+        // 避免重复标记
+        if (this.detectedElements.has(targetElement)) return;
+        
+        targetElement.dataset.ccOriginalPrice = priceData.amount;
+        targetElement.dataset.ccCurrency = priceData.currency;
+        targetElement.dataset.ccIsCrypto = priceData.isCrypto ? 'true' : 'false';
+        
+        // 标记是否为精确定位（用于鼠标悬停判断）
+        if (preciseElement) {
+          targetElement.dataset.ccPriceOnly = 'true';
+          // console.log('[CC] 精确标记:', priceData.originalText, targetElement);
+        } else {
+          // console.log('[CC] 容器标记:', priceData.originalText, targetElement);
+        }
+        
+        targetElement.classList.add('cc-price-detected');
+        this.detectedElements.set(targetElement, priceData);
         
         // 内联显示模式
         if (this.config.get('inlineMode')) {
-          this.addInlineConversion(element, priceData);
+          this.addInlineConversion(targetElement, priceData);
         }
       } catch (error) {
         console.warn('[CC] Failed to mark element:', error);
+      }
+    }
+    
+    /**
+     * 查找包含价格的最精确元素
+     * @param {HTMLElement} element - 起始元素
+     * @param {string} priceText - 价格文本
+     * @returns {HTMLElement|null} 精确元素或null
+     */
+    findPrecisePriceElement(element, priceText) {
+      if (!element || !priceText) return null;
+      
+      try {
+        // 查找所有包含价格文本的子元素
+        const walker = document.createTreeWalker(
+          element,
+          NodeFilter.SHOW_TEXT,
+          null
+        );
+        
+        let node;
+        let matchedParent = null;
+        let minSize = Infinity;
+        
+        while (node = walker.nextNode()) {
+          if (node.textContent.includes(priceText)) {
+            const parent = node.parentElement;
+            if (parent && parent !== element) {
+              // 找到最小的包含价格的元素
+              const size = parent.textContent.length;
+              if (size < minSize && !parent.classList.contains('cc-price-detected')) {
+                minSize = size;
+                matchedParent = parent;
+              }
+            }
+          }
+        }
+        
+        return matchedParent;
+      } catch (error) {
+        return null;
       }
     }
 
@@ -1894,10 +1998,13 @@
         }
       }
 
-      // 检查鼠标是否真的在文本内容上（而不是元素的空白区域）
-      if (!this.isMouseOverText(event, target)) {
-        return; // 鼠标不在文本上，不显示tooltip
+      // 如果元素标记了精确位置，检查鼠标是否在价格区域
+      if (target.dataset.ccPriceOnly === 'true') {
+        if (!this.isMouseOverText(event, target)) {
+          return; // 鼠标不在价格文本上，不显示tooltip
+        }
       }
+      // 否则只要鼠标在标记的元素内就显示tooltip
 
       clearTimeout(this.hideTimer);
       this.showTooltip(target, event);
@@ -1927,12 +2034,8 @@
         const textNodes = this.getTextNodes(element);
         
         if (textNodes.length === 0) {
-          // 如果没有文本节点，使用元素的 scrollWidth
-          const textWidth = element.scrollWidth;
-          const paddingLeft = parseFloat(getComputedStyle(element).paddingLeft) || 0;
-          const maxX = rect.left + paddingLeft + textWidth;
-          
-          return mouseX <= maxX;
+          // 如果没有文本节点，默认允许（可能是特殊元素）
+          return true;
         }
 
         // 选择所有文本内容
@@ -1942,8 +2045,8 @@
         // 获取文本的边界矩形
         const textRect = range.getBoundingClientRect();
         
-        // 检查鼠标是否在文本区域内（增加5px的容差）
-        const tolerance = 5;
+        // 检查鼠标是否在文本区域内（增加10px的容差，更宽容）
+        const tolerance = 10;
         return mouseX >= textRect.left - tolerance && 
                mouseX <= textRect.right + tolerance &&
                mouseY >= textRect.top - tolerance && 
@@ -4596,7 +4699,7 @@ ${this.i18n.t('config.userCountryCurrency')}: ${this.config.get('userCountryCurr
    * 主初始化函数
    */
   function init() {
-    console.log('%c💱 Currency Converter v1.6.5 Loaded', 
+    console.log('%c💱 Currency Converter v1.6.6 Loaded', 
       'color: #667eea; font-size: 14px; font-weight: bold;');
 
     try {
