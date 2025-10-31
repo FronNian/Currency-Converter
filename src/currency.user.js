@@ -1,16 +1,16 @@
 // ==UserScript==
-// @name         ✨全能货币转换器 - Universal Currency Converter✨
-// @name:zh-CN   ✨全能货币转换器✨
-// @name:en      ✨Universal Currency Converter✨
-// @name:ja      ✨ユニバーサル通貨コンバーター✨
-// @name:ko      ✨유니버설 통화 변환기✨
+// @name         ✨💱汇率转换器|货币换算|Currency Converter - 美元/欧元/比特币价格实时转换✨
+// @name:zh-CN   ✨💱汇率转换器|货币换算 - 价格转换工具✨
+// @name:en      ✨💱Currency Converter|Exchange Rate - Real-time Price Conversion✨
+// @name:ja      ✨💱為替換算|通貨変換 - リアルタイム価格コンバーター✨
+// @name:ko      ✨💱환율 변환기|통화 계산기 - 실시간 가격 변환✨
 // @namespace    https://greasyfork.org/en/scripts/553280-%E5%85%A8%E8%83%BD%E8%B4%A7%E5%B8%81%E8%BD%AC%E6%8D%A2%E5%99%A8-universal-currency-converter?locale_override=1
-// @version      1.7.2
-// @description  智能识别网页价格，鼠标悬停即可查看实时汇率转换。支持57种法币+70种加密货币，API密钥池轮换，智能多语言界面。
-// @description:zh-CN  智能识别网页价格，鼠标悬停即可查看实时汇率转换。支持57种法币+70种加密货币，API密钥池轮换，智能多语言界面。
-// @description:en  Intelligently detect prices on web pages and view real-time currency conversions on hover. Supports 57 fiat + 70 cryptocurrencies, API key rotation, smart multilingual interface.
-// @description:ja  Webページ上の価格を自動認識し、マウスホバーでリアルタイム為替換算を表示。57種類の法定通貨+70種類の暗号通貨に対応、APIキープール、多言語対応。
-// @description:ko  웹페이지 가격을 자동 인식하고 마우스 호버 시 실시간 환율 변환을 표시합니다. 57개 법정화폐+70개 암호화폐 지원, API 키 풀, 다국어 인터페이스.
+// @version      1.7.3
+// @description  💰汇率换算工具|实时货币转换器|价格转换助手💰 自动识别USD美元/EUR欧元/CNY人民币/JPY日元/GBP英镑/KRW韩元等127种货币(含BTC比特币/ETH以太坊/USDT等加密货币)。支持淘宝/天猫/京东/拼多多/Amazon亚马逊/eBay/Steam游戏/阿里云/AWS等全网站。鼠标悬停显示汇率弹窗tooltip，支持外汇牌价查询、跨境电商海淘、游戏充值、VPS服务器购买等场景。Currency Exchange Rate Converter Price Calculator Bitcoin Crypto 換算 両替 為替レート
+// @description:zh-CN  💰汇率换算|货币转换|价格计算💰 网页价格自动识别转换工具，支持美元/欧元/人民币/日元/英镑/韩元等127种货币。淘宝天猫京东Amazon海淘Steam游戏充值阿里云服务器全支持。实时外汇牌价查询，跨境电商必备神器。
+// @description:en  💰Currency Converter|Exchange Rate Calculator|Price Conversion Tool💰 Auto-detect & convert USD/EUR/CNY/JPY/GBP/KRW + 127 currencies including Bitcoin/Ethereum crypto. Works on Amazon/eBay/Taobao/Steam/AWS. Hover tooltip shows real-time forex rates. Perfect for cross-border shopping, gaming, cloud services. 汇率 货币 両替 換算
+// @description:ja  💰為替換算ツール|通貨コンバーター|価格変換💰 USD/EUR/JPY/CNY等127通貨(ビットコイン/イーサリアム含)を自動認識変換。Amazon/楽天/Steam/AWSで利用可能。マウスホバーでリアルタイム為替レート表示。越境EC・ゲーム課金・クラウドサービス購入に最適。Currency Exchange Rate 汇率 환율
+// @description:ko  💰환율 계산기|통화 변환기|가격 변환 도구💰 USD/EUR/CNY/JPY/KRW 등 127개 통화(비트코인/이더리움 포함) 자동 인식 변환. Amazon/쿠팡/Steam/AWS 지원. 마우스 호버로 실시간 환율 툴팁 표시. 해외직구/게임충전/클라우드서비스 구매 필수. Currency Converter 汇率 為替
 // @author       FronNian
 // @copyright    2025, FronNian (huayuan4564@gmail.com)
 // @match        *://*/*
@@ -5197,7 +5197,7 @@ ${this.i18n.t('config.userCountryCurrency')}: ${this.config.get('userCountryCurr
    * 主初始化函数
    */
     function init() {
-      console.log('%c💱 Currency Converter v1.7.2 Loaded',
+      console.log('%c💱 Currency Converter v1.7.3 Loaded',
       'color: #667eea; font-size: 14px; font-weight: bold;');
 
     try {
